@@ -1,11 +1,8 @@
 #include <stdio.h>
-#include "PikaVM.h"
+#include <stdlib.h>
 
-int main(int argc, char* argv[])
+int main()
 {
-    PikaObj* pikaMain = NULL;
-    pikaMain = pikaPythonInit();
-    pikaPythonShell(pikaMain);
-
-    while(1);
+    printf("hello leafpython\n");
+    return 0;
 }
