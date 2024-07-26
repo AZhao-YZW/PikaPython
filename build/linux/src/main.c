@@ -1,8 +1,9 @@
-#include <stdio.h>
-#include <stdlib.h>
+#include "pikaScript.h"
 
-int main()
+int main(int argc, char *argv[])
 {
-    printf("hello leafpython\n");
+    PikaObj* root = pikaScriptInit();
+    pikaScriptShell(root);
+    obj_deinit(root);
     return 0;
 }
