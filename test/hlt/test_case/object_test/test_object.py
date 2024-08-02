@@ -1,26 +1,22 @@
 # Object support
 print("=====Test Start=====")
-# Module Import
-import math
-import sys
-
 # Class Definition
 class Animal:
     def __init__(self, name):
         self.name = name
     
     def speak(self):
-        return f"{self.name} makes a sound"
+        return "%s makes a sound" %(self.name)
 
 # Class Inheritance
 class Dog(Animal):
     def speak(self):
-        return f"{self.name} barks"
+        return "%s barks" %(self.name)
 
 # Method Definition
 class Bird(Animal):
     def fly(self):
-        return f"{self.name} is flying"
+        return "%s is flying" %(self.name)
 
 # Method Overloading
 class Math:
@@ -34,7 +30,7 @@ print(dog.speak())
 # Parameter Definition
 def greet(greeting="Hello", *names):
     for name in names:
-        print(f"{greeting}, {name}!")
+        print("%s %s!" %(greeting, name))
 
 # Parameter Assignment
 greet("Hi", "Alice", "Bob")
@@ -63,12 +59,9 @@ elif owner.name == "Bob":
 else:
     print("Unknown owner")
 
-for i in range(3):
-    print(f"Iteration {i}")
-
 count = 0
 while count < 3:
-    print(f"Count is {count}")
+    print("Count is %s" %(count))
     count += 1
 
 print("=====Test End=====")
