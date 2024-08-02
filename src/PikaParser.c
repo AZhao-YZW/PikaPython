@@ -32,6 +32,7 @@
 #include "dataQueueObj.h"
 #include "dataStack.h"
 #include "dataStrs.h"
+#include "parser.h"
 
 /* local head */
 char* AST_genAsm_top(AST* ast, Args* outBuffs);
@@ -2032,6 +2033,7 @@ static int32_t Parser_getPyLineBlockDeepth(char* sLine) {
     return -1;
 }
 
+// FIXME: REFACTORED
 char* Parser_removeComment(char* sLine) {
     pika_bool bAnnotationExit = 0;
     pika_bool bInSingleQuotes = 0;
@@ -2774,7 +2776,7 @@ static char* Parser_sugerProcess(Args* outbuffs, char* sLine) {
 }
 
 static char* Parser_linePreProcess(Args* outbuffs, char* sLine) {
-    sLine = Parser_removeComment(sLine);
+    sLine = parser_remove_comment(sLine);
 
     /* check syntex error */
     if (Lexer_isError(sLine)) {
@@ -2936,7 +2938,7 @@ char* parser_lines2Target(Parser* self, char* sPyLines) {
         /* line connection */
         if (bIsLineConnection) {
             if (bIsLineConnectionForBracket) {
-                sLine = Parser_removeComment(sLine);
+                sLine = parser_remove_comment(sLine);
                 if (strEqu(sLine, "@annotation")) {
                     sLine = "";
                 }
