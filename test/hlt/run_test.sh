@@ -13,7 +13,10 @@ else
 fi
 
 if [ "$mode" = "REPL" ]; then
-    python run_test.py ./../../build/linux/repl/output/leafpython
+    repl_dir=../../build/linux/repl
+    python run_test.py ${repl_dir}/output/leafpython
 elif [ "$mode" = "FILE" ]; then
-    echo 'todo'
+    file_dir=../../build/linux/file
+    pika_dir=../../build/linux/pikapython
+    python run_file_test.py ${file_dir}/output/leafpython ${pika_dir}
 fi
