@@ -2,8 +2,8 @@
 
 int main(int argc, char *argv[])
 {
-    PikaObj* root = pikaScriptInit();
-    pikaScriptShell(root);
+    PikaObj* root = pikaPythonInit();
+    pikaPythonShell(root);
     obj_deinit(root);
     return 0;
 }
