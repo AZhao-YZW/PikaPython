@@ -32,6 +32,8 @@
 #include "dataQueueObj.h"
 #include "dataStack.h"
 #include "dataStrs.h"
+#include "parser.h"
+#include "lexer.h"
 
 /* local head */
 char* AST_genAsm_top(AST* ast, Args* outBuffs);
@@ -123,7 +125,7 @@ char* Cursor_getCleanStmt(Args* outBuffs, char* cmd) {
 static uint8_t Lexer_isError(char* line) {
     Args buffs = {0};
     uint8_t uRes = 0; /* not error */
-    char* sTokenStream = Lexer_getTokenStream(&buffs, line);
+    char* sTokenStream = lexer_get_token_stream(&buffs, line);
     if (NULL == sTokenStream) {
         uRes = 1; /* lex error */
         goto __exit;
@@ -394,6 +396,7 @@ __exit:
     return uRes;
 }
 
+// FIXME: REFACTORED
 Arg* Lexer_setToken(Arg* tokenStream_arg,
                     enum TokenType token_type,
                     char*
@@ -411,6 +414,7 @@ Arg* Lexer_setToken(Arg* tokenStream_arg,
     return aNewTokenStream;
 }
 
+// FIXME: REFACTORED
 Arg* Lexer_setSymbel(Arg* aTokenStream,
                      char* stmt,
                      int32_t i,
@@ -457,6 +461,7 @@ __exit:
     return aTokenStream;
 }
 
+// FIXME: REFACTORED
 /* tokenStream is devided by space */
 /* a token is [TOKENTYPE|(CONTENT)] */
 char* Lexer_getTokenStream(Args* outBuffs, char* sStmt) {
@@ -1008,7 +1013,7 @@ void _Cursor_parse(struct Cursor* cs, char* stmt) {
         cs->result = PIKA_RES_ERR_SYNTAX_ERROR;
         return;
     }
-    cs->tokenStream = Lexer_getTokenStream(cs->buffs_p, stmt);
+    cs->tokenStream = lexer_get_token_stream(cs->buffs_p, stmt);
     if (NULL == cs->tokenStream) {
         cs->result = PIKA_RES_ERR_SYNTAX_ERROR;
         return;
@@ -2032,6 +2037,7 @@ static int32_t Parser_getPyLineBlockDeepth(char* sLine) {
     return -1;
 }
 
+// FIXME: REFACTORED
 char* Parser_removeComment(char* sLine) {
     pika_bool bAnnotationExit = 0;
     pika_bool bInSingleQuotes = 0;
@@ -2774,7 +2780,7 @@ static char* Parser_sugerProcess(Args* outbuffs, char* sLine) {
 }
 
 static char* Parser_linePreProcess(Args* outbuffs, char* sLine) {
-    sLine = Parser_removeComment(sLine);
+    sLine = parser_remove_comment(sLine);
 
     /* check syntex error */
     if (Lexer_isError(sLine)) {
@@ -2936,7 +2942,7 @@ char* parser_lines2Target(Parser* self, char* sPyLines) {
         /* line connection */
         if (bIsLineConnection) {
             if (bIsLineConnectionForBracket) {
-                sLine = Parser_removeComment(sLine);
+                sLine = parser_remove_comment(sLine);
                 if (strEqu(sLine, "@annotation")) {
                     sLine = "";
                 }

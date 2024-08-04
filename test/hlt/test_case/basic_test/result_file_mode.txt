@@ -6,16 +6,11 @@ PikaStdLib===v1.13.3
 ~~~/ POWERED BY \~~~
 ~  pikapython.com  ~
 ~~~~~~~~~~~~~~~~~~~~
-hello pikascript
->>> print('======= Test Start =======')
+(pikascript) pika compiler:
+  compiling main.py...
+  linking pikascript-api/pikaModules_cache.py.a...
+(pikascript) all succeed.
 ======= Test Start =======
->>> a = 1
->>> b = 2
->>> a + b
-3
->>> for i in range(10):
-...     print(i)
-... print('======= Test End =======')
 0
 1
 2
@@ -27,5 +22,3 @@ hello pikascript
 8
 9
 ======= Test End =======
->>> 
-Error: line buff overflow, please use bigger 'PIKA_LINE_BUFF_SIZE'
