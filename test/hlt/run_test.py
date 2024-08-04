@@ -5,9 +5,9 @@ import subprocess
 from pathlib import Path
 
 def run_test(test_file, result_file):
-   with open(test_file, 'r', encoding='utf-8') as fin, \
+    with open(test_file, 'r', encoding='utf-8') as fin, \
          open(result_file, 'a', encoding='utf-8') as fout:
-        path = Path('./../../build/output/leafpython')
+        path = Path(sys.argv[1])
         p = subprocess.Popen(str(path),
                             stdin=fin,
                             stdout=subprocess.PIPE,
@@ -18,7 +18,7 @@ def run_test(test_file, result_file):
         print(f"Results for {test_file}:")
         print(out_disp)
         fout.write(f"Results for {test_file}:\n")
-        fout.write(out_disp + '\n')
+        fout.write(out_disp)
 
 def traverse_and_test(directory):
     for root, _, files in os.walk(directory):
