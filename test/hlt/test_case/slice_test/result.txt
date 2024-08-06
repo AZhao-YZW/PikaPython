@@ -1,0 +1,71 @@
+Results for test_case/slice_test/test_slice.py:
+======[pikapython packages installed]======
+pikascript-core==v1.13.3 (2024/05/25 01:26:44)
+PikaStdLib===v1.13.3
+===========================================
+~~~/ POWERED BY \~~~
+~  pikapython.com  ~
+~~~~~~~~~~~~~~~~~~~~
+hello pikascript
+>>> def test_slice(strings, byte, numbers):
+...     
+...     str1 = strings[7]
+...     print("str1:", str1)
+...     str2 = strings[7:17]
+...     print("str2:", str2)
+...     str3 = strings[7:]
+...     print("str3:", str3)
+... 
+>>>     byte1 = byte[7]
+NameError: name 'byte' is not defined
+ -> REF byte 		(#1)
+>>>     print("byte1:", chr(byte1))
+NameError: name 'byte1' is not defined
+   STR byte1: 		(#1)
+ -> REF byte1 		(#8)
+>>>     byte2 = byte[7:17]
+NameError: name 'byte' is not defined
+ -> REF byte 		(#1)
+>>>     print("byte2:", byte2.decode())
+Error: method 'byte2.decode' no found.
+   STR byte2: 		(#1)
+ -> RUN byte2.decode 		(#8)
+>>>     byte3 = byte[7:]
+NameError: name 'byte' is not defined
+ -> REF byte 		(#1)
+>>>     print("byte3:", byte3.decode())
+Error: method 'byte3.decode' no found.
+   STR byte3: 		(#1)
+ -> RUN byte3.decode 		(#8)
+>>> 
+>>>     list1 = numbers[3]
+NameError: name 'numbers' is not defined
+ -> REF numbers 		(#1)
+>>>     print("list1:", list1)
+NameError: name 'list1' is not defined
+   STR list1: 		(#1)
+ -> REF list1 		(#8)
+>>>     list2 = numbers[2:5]
+NameError: name 'numbers' is not defined
+ -> REF numbers 		(#1)
+>>>     print("list2:", list2)
+NameError: name 'list2' is not defined
+   STR list2: 		(#1)
+ -> REF list2 		(#8)
+>>>     list3 = numbers[4:]
+NameError: name 'numbers' is not defined
+ -> REF numbers 		(#1)
+>>>     print("list3:", list3)
+NameError: name 'list3' is not defined
+   STR list3: 		(#1)
+ -> REF list3 		(#8)
+>>> 
+>>> strings = "Hello, PikaPython!"
+>>> byte = b"Hello, PikaPython!"
+>>> numbers = [1, 2, 3, 4, 5, 6, 7]
+>>> test_slice(strings, byte, numbers)
+str1: P
+str2: PikaPython
+str3: PikaPython!
+>>> 
+Error: line buff overflow, please use bigger 'PIKA_LINE_BUFF_SIZE'
