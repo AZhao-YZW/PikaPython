@@ -1,4 +1,4 @@
-Results for test_case/list_dict_test/test_list_dict.py:
+Results for test_case/slice_test/test_slice.py:
 ======[pikapython packages installed]======
 pikascript-core==v1.13.3 (2024/05/25 01:26:44)
 PikaStdLib===v1.13.3
@@ -10,7 +10,12 @@ PikaStdLib===v1.13.3
   compiling main.py...
   linking pikascript-api/pikaModules_cache.py.a...
 (pikascript) all succeed.
-list l1: []
-List l2: ['a', 'b', 'c']
-dict d1: {}
-dict d2: {'a': 10, 'b': 20, 'c': 30}
+str1: P
+str2: PikaPython
+str3: PikaPython!
+byte1: P
+byte2: PikaPython
+byte3: PikaPython!
+list1: 4
+list2: [3, 4, 5]
+list3: [5, 6, 7]

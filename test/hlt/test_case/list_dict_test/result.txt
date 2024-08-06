@@ -1,4 +1,4 @@
-Results for test_case/list_test/list_test.py:
+Results for test_case/list_dict_test/test_list_dict.py:
 ======[pikapython packages installed]======
 pikascript-core==v1.13.3 (2024/05/25 01:26:44)
 PikaStdLib===v1.13.3
