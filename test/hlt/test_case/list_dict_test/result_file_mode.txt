@@ -1,0 +1,16 @@
+Results for test_case/list_dict_test/test_list_dict.py:
+======[pikapython packages installed]======
+pikascript-core==v1.13.3 (2024/05/25 01:26:44)
+PikaStdLib===v1.13.3
+===========================================
+~~~/ POWERED BY \~~~
+~  pikapython.com  ~
+~~~~~~~~~~~~~~~~~~~~
+(pikascript) pika compiler:
+  compiling main.py...
+  linking pikascript-api/pikaModules_cache.py.a...
+(pikascript) all succeed.
+list l1: []
+List l2: ['a', 'b', 'c']
+dict d1: {}
+dict d2: {'a': 10, 'b': 20, 'c': 30}
