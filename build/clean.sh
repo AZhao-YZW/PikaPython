@@ -1,6 +1,6 @@
 #-------------------- HELP ---------------------#
 if [ "$1" = "-h" ]; then
-    echo 'FORMAT: sh run_test.sh [REPL|FILE|ALL]'
+    echo 'FORMAT: sh clean.sh [REPL|FILE|ALL]'
     exit 1
 fi
 
@@ -16,14 +16,12 @@ else
     exit 1
 fi
 
-#------------------ RUN TEST -------------------#
 if [ "$mode" = "REPL" ] || [ "$mode" = "ALL" ]; then
-    repl_dir=../../build/linux/repl
-    python run_test.py ${repl_dir}/output/leafpython
+    output_dir=./linux/repl/output
+    rm -rf $output_dir
 fi
 
 if [ "$mode" = "FILE" ] || [ "$mode" = "ALL" ]; then
-    file_dir=../../build/linux/file
-    pika_dir=../../build/linux/pikapython
-    python run_file_test.py ${file_dir}/output/leafpython ${pika_dir}
+    output_dir=./linux/file/output
+    rm -rf $output_dir
 fi
