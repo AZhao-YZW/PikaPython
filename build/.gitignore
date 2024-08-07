@@ -1,2 +1,6 @@
-/output/
+leafpython
+*.o
+*.a
+
+output/
 /linux/pikapython/pikascript-core/
