@@ -1,12 +1,16 @@
-if [ ! -n "$1" ]; then
+#-------------------- HELP ---------------------#
+if [ "$1" = "-h" ]; then
+    echo 'FORMAT: sh run.sh [REPL|FILE]'
+    exit 1
+fi
+
+#----------------- SELECT MODE -----------------#
+if [ ! -n "$1" ] || [ "$1" = "ALL" ]; then
     mode="REPL"
     echo '===== default use REPL mode ====='
-elif [ "$1" = "REPL" ]; then
-    mode="REPL"
-    echo '===== use REPL mode ====='
-elif [ "$1" = "FILE" ]; then
-    mode="FILE"
-    echo '===== use FILE mode ====='
+elif [ "$1" = "REPL" ] || [ "$1" = "FILE" ]; then
+    mode="$1"
+    echo "===== use $1 mode ====="
 else
     echo '*ERROR*: mode is wrong, support value [REPL|FILE]'
     exit 1
