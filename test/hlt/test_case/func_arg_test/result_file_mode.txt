@@ -1,4 +1,4 @@
-Results for test_case/func_arg_test/test_func_arg.py:
+Result for test_case/func_arg_test/test_func_arg.py:
 ======[pikapython packages installed]======
 pikascript-core==v1.13.3 (2024/05/25 01:26:44)
 PikaStdLib===v1.13.3
@@ -34,5 +34,5 @@ a: 1
 b: 2
 *args: ()
 Assertion "self != 0" failed, in function: arg_getType(). 
-  (at /home/build/linux/../../src/dataArg.h:140)
+  (at /home/azhao/LeafScript/PikaPython/build/linux/../../src/dataArg.h:140)
 Aborted

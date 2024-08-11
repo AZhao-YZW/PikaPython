@@ -1,0 +1,34 @@
+Result for test_case/func_arg_test/test_func_arg.py:
+======= Test Start =======
+Test function: test_function_arguments(a, b=2, *args, **kwargs)
+Function arguments test:
+a: 1
+b: 2
+*args: ()
+**kwargs: {}
+a: 1
+b: 3
+*args: ()
+**kwargs: {}
+a: 1
+b: 3
+*args: (4, 5, 6)
+**kwargs: {}
+a: 1
+b: 3
+*args: (4, 5, 6)
+**kwargs: {'x': 7, 'y': 8}
+Function arguments test with keyword arguments:
+a: 1
+b: 2
+*args: ()
+**kwargs: {}
+a: 1
+b: 3
+*args: ()
+**kwargs: {}
+a: 1
+b: 3
+*args: ()
+**kwargs: {'x': 7, 'y': 8}
+======= Test End =======
