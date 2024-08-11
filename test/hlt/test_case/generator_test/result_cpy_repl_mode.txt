@@ -1,0 +1,18 @@
+Result for test_case/generator_test/test_generator.py:
+===== generator functions test =====
+func_1: 0
+func_2: 0
+func_1: 1
+func_2: 1
+func_1: 2
+func_2: 2
+func_1: 3
+func_2: 3
+func_1: 4
+func_2: 4
+===== generator expressions test =====
+num_gen_express: 0
+num_gen_express: 1
+num_gen_express: 2
+num_gen_express: 3
+num_gen_express: 4
