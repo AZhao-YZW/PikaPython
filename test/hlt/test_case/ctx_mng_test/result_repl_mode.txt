@@ -1,0 +1,25 @@
+Result for test_case/ctx_mng_test/test_ctx_mng.py:
+======[pikapython packages installed]======
+pikascript-core==v1.13.3 (2024/05/25 01:26:44)
+PikaStdLib===v1.13.3
+===========================================
+~~~/ POWERED BY \~~~
+~  pikapython.com  ~
+~~~~~~~~~~~~~~~~~~~~
+hello pikascript
+>>> # with statement
+>>> 
+>>> # custom context managers (using enter and exit methods)
+>>> print('===== custom context managers test =====')
+===== custom context managers test =====
+>>> 
+>>> class InnerContext:
+...     def __init__(self):
+...         print('InnerContext.__init__')
+... 
+>>>     def do_something(self):
+...         print('InnerContext.do_something')
+... 
+Assertion "NULL != self" failed, in function: arg_getContent(). 
+  (at /home/azhao/LeafScript/PikaPython/src/dataArg.h:292)
+Aborted

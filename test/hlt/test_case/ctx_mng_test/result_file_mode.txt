@@ -1,0 +1,20 @@
+Result for test_case/ctx_mng_test/test_ctx_mng.py:
+======[pikapython packages installed]======
+pikascript-core==v1.13.3 (2024/05/25 01:26:44)
+PikaStdLib===v1.13.3
+===========================================
+~~~/ POWERED BY \~~~
+~  pikapython.com  ~
+~~~~~~~~~~~~~~~~~~~~
+(pikascript) pika compiler:
+  compiling main.py...
+----------[22]----------
+with ContextManager(True) as ctx:
+-------------------------
+    Error: Syntax error.
+  Error: compile failed, link aborted.
+(pikascript) all succeed.
+list l1: []
+List l2: ['a', 'b', 'c']
+dict d1: {}
+dict d2: {'a': 10, 'b': 20, 'c': 30}
