@@ -1,0 +1,6 @@
+Result for test_case/string_test/test_string.py:
+======= Test Start =======
+%-formatting tests passed!
+str.format() tests passed!
+f-strings (formatted string literals) tests passed!
+======= Test End =======
