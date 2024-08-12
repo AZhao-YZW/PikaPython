@@ -13,7 +13,7 @@ InnerContext.__del__
 InnerContext.do_something
 ContextManager.__exit__(<class 'RuntimeError'>, error message propagated)
 Traceback (most recent call last):
-  File "/home/azhao/LeafScript/PikaPython/test/hlt/test_case/ctx_mng_test/test_ctx_mng.py", line 36, in <module>
+  File "/home/guest/project/Leaf_python/PikaPython/test/hlt/test_case/ctx_mng_test/test_ctx_mng.py", line 36, in <module>
     raise RuntimeError('error message propagated')
 RuntimeError: error message propagated
 InnerContext.__del__
