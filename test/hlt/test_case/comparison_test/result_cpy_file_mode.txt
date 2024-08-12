@@ -1,0 +1,2 @@
+Result for test_case/comparison_test/test_comparison.py:
+Comparison operations tests passed!
