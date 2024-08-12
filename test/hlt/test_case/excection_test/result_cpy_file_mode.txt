@@ -1,0 +1,4 @@
+Result for test_case/excection_test/test_exception.py:
+10 / 2 = 5.0
+caught an exception
+raise sueecss

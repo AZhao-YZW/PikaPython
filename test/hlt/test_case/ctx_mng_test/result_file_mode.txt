@@ -1,4 +1,4 @@
-Result for test_case/excection_test/test_exception.py:
+Result for test_case/ctx_mng_test/test_ctx_mng.py:
 ======[pikapython packages installed]======
 pikascript-core==v1.13.3 (2024/05/25 01:26:44)
 PikaStdLib===v1.13.3
@@ -8,7 +8,13 @@ PikaStdLib===v1.13.3
 ~~~~~~~~~~~~~~~~~~~~
 (pikascript) pika compiler:
   compiling main.py...
-  linking pikascript-api/pikaModules_cache.py.a...
+----------[22]----------
+with ContextManager(True) as ctx:
+-------------------------
+    Error: Syntax error.
+  Error: compile failed, link aborted.
 (pikascript) all succeed.
-10 / 2 = 5.000000
-raise sueecss
+list l1: []
+List l2: ['a', 'b', 'c']
+dict d1: {}
+dict d2: {'a': 10, 'b': 20, 'c': 30}

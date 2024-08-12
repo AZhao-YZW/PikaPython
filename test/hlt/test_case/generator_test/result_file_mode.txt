@@ -1,4 +1,4 @@
-Result for test_case/excection_test/test_exception.py:
+Result for test_case/generator_test/test_generator.py:
 ======[pikapython packages installed]======
 pikascript-core==v1.13.3 (2024/05/25 01:26:44)
 PikaStdLib===v1.13.3
@@ -10,5 +10,7 @@ PikaStdLib===v1.13.3
   compiling main.py...
   linking pikascript-api/pikaModules_cache.py.a...
 (pikascript) all succeed.
-10 / 2 = 5.000000
-raise sueecss
+===== generator functions test =====
+NameError: name 'yieldi' is not defined
+ -> REF yieldi 		(#95)
+ -> RUN num_gen_func 		(#105)
