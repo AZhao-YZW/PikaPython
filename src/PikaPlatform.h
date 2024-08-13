@@ -157,11 +157,11 @@ typedef enum {
 #endif
 
 #ifndef true
-#define true 1
+#define true ((uint8_t)1)
 #endif
 
 #ifndef false
-#define false 0
+#define false ((uint8_t)0)
 #endif
 
 #define _PIKA_INT_ERR (-999999999)
