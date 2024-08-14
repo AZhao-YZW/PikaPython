@@ -128,6 +128,7 @@ struct Cursor {
     PIKA_RES result;
 };
 
+// FIXME: REFACTORED
 char* Lexer_getTokenStream(Args* outBuffs, char* stmt);
 char* Lexer_printTokenStream(Args* outBuffs, char* tokenStream);
 
@@ -145,8 +146,8 @@ AST* line2Ast(char* line);
 
 PIKA_RES pika_lines2Bytes(ByteCodeFrame* bf, char* py_lines);
 char* parser_line2Target(Parser* self, char* line);
-
-Parser* parser_create(void);
+// FIXME: REFACTORED
+Parser* parser_create_old(void);
 int parser_deinit(Parser* parser);
 
 char* Cursor_popLastToken(Args* outBuffs, char** pStmt, char* str);

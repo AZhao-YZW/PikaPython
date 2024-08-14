@@ -22,6 +22,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "parser.h"
+#include "PikaParser.h"
 #include "dataString.h"
 
 char* parser_remove_comment(char* line)
@@ -76,4 +77,20 @@ char* parser_remove_comment(char* line)
 
     line = "@annotation";
     return line;
+}
+
+extern char* parser_ast2Asm(Parser* self, AST_S* ast);
+
+Parser_S* parser_create(void)
+{
+    Parser_S* self = (Parser_S*)pikaMalloc(sizeof(Parser_S));
+    pika_platform_memset(self, 0, sizeof(Parser_S));
+    self->blk_state.stack = pikaMalloc(sizeof(Stack));
+    /* generate asm as default */
+    self->ast_to_target = parser_ast2Asm;
+    pika_platform_memset(self->blk_state.stack, 0, sizeof(Stack));
+    stack_init(self->blk_state.stack);
+    /* -1 means not inited */
+    self->blk_depth_origin = _VAL_NEED_INIT;
+    return self;
 }
