@@ -25,7 +25,32 @@
 #define __PARSER_H__
 
 #include "PikaPlatform.h"
+#include "PikaObj.h"
+#include "dataArgs.h"
+#include "dataStack.h"
+
+#define _VAL_NEED_INIT -1
+
+typedef PikaObj AST_S;
+
+typedef struct {
+    Stack* stack;
+    int depth;
+} BlockState_S;
+
+typedef struct Parser_S {
+    Args line_buffs;
+    Args gen_buffs;
+    BlockState_S blk_state;
+    int blk_depth_origin;
+    char *(*ast_to_target)(struct Parser_S* self, AST_S* ast);
+    bool is_gen_bytecode;
+    ByteCodeFrame* bytecode_frame;
+    uint8_t this_blk_depth;
+    uint32_t label_pc;
+} Parser_S;
 
 char* parser_remove_comment(char* line);
+Parser_S* parser_create(void);
 
 #endif
