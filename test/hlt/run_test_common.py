@@ -2,7 +2,7 @@ import os
 import subprocess
 from typing import Callable
 
-def run_test_and_output(p: subprocess.Popen[bytes], ftest: str, fout):
+def run_test_and_output(p: subprocess.Popen, ftest: str, fout):
     out, err = p.communicate()
     out_disp = out.decode(errors='ignore').replace('\r\n', '\n').replace('\r', '\n').replace('\n\n', '\n')
     print(f"{ftest} OK")
