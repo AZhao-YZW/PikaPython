@@ -3860,7 +3860,8 @@ char* pika_lines2Array(char* sLines) {
     return NULL;
 }
 
-Parser* parser_create(void) {
+// FIXME: REFACTORED
+Parser* parser_create_old(void) {
     Parser* self = (Parser*)pikaMalloc(sizeof(Parser));
     pika_platform_memset(self, 0, sizeof(Parser));
     self->blockState.stack = pikaMalloc(sizeof(Stack));
