@@ -40,6 +40,6 @@ file(GLOB_RECURSE PIKA_API_SRCS ${PIKA_API_DIR}/*.h ${PIKA_API_DIR}/*.c)
 
 add_executable(${EXE_NAME} ${SRCS} ${PIKA_LIB_SRCS} ${PIKA_API_SRCS})
 
-target_link_libraries(${EXE_NAME} ${CMAKE_PROJECT_NAME}_core)
+target_link_libraries(${EXE_NAME} ${CMAKE_PROJECT_NAME}_core pthread)
 
 add_subdirectory(${CORE_DIR} core)
