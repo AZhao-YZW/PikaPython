@@ -1,7 +1,7 @@
 #-------------------- HELP ---------------------#
 if [ "$1" = "-h" ]; then
     echo 'FORMAT: sh build.sh [REPL|FILE|ALL] [LEAF|PIKA] [PRECPL]'
-    exit 1
+    exit 0
 fi
 
 #----------------- SELECT MODE -----------------#
@@ -13,7 +13,7 @@ elif [ "$1" = "REPL" ] || [ "$1" = "FILE" ] || [ "$1" = "ALL" ]; then
     echo "===== use $1 mode ====="
 else
     echo '*ERROR*: mode is wrong, support value [REPL|FILE|ALL]'
-    exit 1
+    exit 0
 fi
 
 #----------------- SELECT CORE -----------------#
@@ -25,7 +25,7 @@ elif [ "$2" = "LEAF" ] || [ "$2" = "PIKA" ]; then
     echo "===== use $2 core ====="
 else
     echo '*ERROR*: core is wrong, support value [LEAF|PIKA]'
-    exit 1
+    exit 0
 fi
 
 #----------------- PRE COMPILE -----------------#

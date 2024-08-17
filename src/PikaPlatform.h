@@ -152,18 +152,6 @@ typedef enum {
 #define pika_false 0 
 #define _PIKA_BOOL_ERR -1
 
-#ifndef bool
-#define bool uint8_t
-#endif
-
-#ifndef true
-#define true ((uint8_t)1)
-#endif
-
-#ifndef false
-#define false ((uint8_t)0)
-#endif
-
 #define _PIKA_INT_ERR (-999999999)
 #define _PIKA_FLOAT_ERR (-999999999.0)
 /* clang-format on */
