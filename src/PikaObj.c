@@ -38,6 +38,7 @@
 #include "dataQueue.h"
 #include "dataString.h"
 #include "dataStrs.h"
+#include "object.h"
 #if __linux
 #include "signal.h"
 #include "termios.h"
