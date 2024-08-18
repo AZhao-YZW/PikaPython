@@ -1,7 +1,7 @@
 #-------------------- HELP ---------------------#
 if [ "$1" = "-h" ]; then
     echo 'FORMAT: sh build_and_run.sh [REPL|FILE|ALL] [LEAF|PIKA]'
-    exit 1
+    exit 0
 fi
 
 echo '========================= BUILD ========================='

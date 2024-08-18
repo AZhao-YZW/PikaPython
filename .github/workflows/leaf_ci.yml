@@ -1,0 +1,51 @@
+name: LEAF-CI
+
+on:
+  push:
+    branches: [ dev, base ]
+  pull_request:
+    branches: [ dev, base ]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  core:
+    # The CMake configure and build commands are platform agnostic and should work equally
+    # well on Windows or Mac.  You can convert this to a matrix build if you need
+    # cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: ubuntu-22.04
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: INSTALL_PACKAGE
+      run: |
+        sudo apt update
+        sudo apt install ninja-build
+        sudo apt install liblua5.3-dev
+        sudo apt install valgrind
+        sudo apt install upx
+        sudo apt install libmbedtls-dev
+        sudo apt install lcov
+        sudo apt install clang-tidy
+  
+    - name: install_google_benchmark
+      run: |
+        git clone https://github.com/google/benchmark.git 
+        cd benchmark 
+        cmake -E make_directory "build" 
+        cmake -E chdir "build" cmake -DBENCHMARK_DOWNLOAD_DEPENDENCIES=on -DCMAKE_BUILD_TYPE=Release ../ 
+        cmake --build "build" --config Release -j
+        sudo cmake --build "build" --config Release --target install -j
+      
+    - name: PULL_CORE
+      run: cd ${{github.workspace}}/port/linux && bash pull-core.sh
+
+    - name: INIT
+      run: cd ${{github.workspace}}/port/linux && bash init.sh
+
+    - name: TEST
+      run: cd ${{github.workspace}}/port/linux && bash gtest.sh

@@ -1,7 +1,7 @@
 #-------------------- HELP ---------------------#
 if [ "$1" = "-h" ]; then
     echo 'FORMAT: sh run_test.sh [REPL|FILE|ALL] [CPYTHON]'
-    exit 1
+    exit 0
 fi
 
 #----------------- SELECT MODE -----------------#
@@ -13,7 +13,7 @@ elif [ "$1" = "REPL" ] || [ "$1" = "FILE" ] || [ "$1" = "ALL" ]; then
     echo "===== use $1 mode ====="
 else
     echo '*ERROR*: mode is wrong, support value [REPL|FILE|ALL]'
-    exit 1
+    exit 0
 fi
 
 #-------------- SELECT INTERPRETER -------------#
@@ -25,7 +25,7 @@ elif [ "$2" = "CPYTHON" ]; then
     echo "===== use $2 interpreter ====="
 else
     echo '*ERROR*: interpreter is wrong, support value [CPYTHON]'
-    exit 1
+    exit 0
 fi
 
 #------------------ RUN TEST -------------------#

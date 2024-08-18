@@ -18,7 +18,7 @@ def randrange(start: int, stop: int, step: int) -> int:
     Return a randomly-selected element from range(start, stop, step).
     """
 
-def seed(a: int) -> None:
+def seed(a: int) -> object:
     """
     Initialize the random number generator.
     """
