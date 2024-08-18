@@ -22,9 +22,12 @@ def run_file_test(py_cmd: str, test_file: str, result_file: str):
                             stderr=subprocess.STDOUT, shell=True)
         run_test_and_output(p, test_file, fout)
 
-def traverse_and_test(dir: str, result_fname: str, run_test: Callable[[str, str], None]):
+def traverse_and_test(dir: str, result_fname: str, prepare: Callable[[str], bool],
+                      run_test: Callable[[str, str], None]):
     for root, _, files in os.walk(dir):
         if root != dir:
+            if not prepare(root):
+                return
             result_file = os.path.join(root, result_fname)
             with open(result_file, 'w', encoding='utf-8') as f:
                 f.truncate(0)
