@@ -3,4 +3,4 @@ leafpython
 *.a
 
 output/
-/pikapython/pikascript-api/
+pikascript-api/
