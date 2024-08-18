@@ -27,7 +27,7 @@ jobs:
     #   - https://gh.io/supported-runners-and-hardware-resources
     #   - https://gh.io/using-larger-runners
     # Consider using larger runners for possible analysis time improvements.
-    runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-20.04' }}
+    runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-22.04' }}
     timeout-minutes: ${{ (matrix.language == 'swift' && 120) || 360 }}
     permissions:
       actions: read
@@ -75,8 +75,10 @@ jobs:
     #   modify them (or add more) to build your code if your project, please refer to the EXAMPLE below for guidance.
 
     - run: |
-        cd src
-        mkdir build && cd build && cmake ../ && make
+        cd build
+        sh build.sh -h
+        sh build.sh ALL LEAF PRECPL
+        sh build.sh ALL PIKA PRECPL
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v2

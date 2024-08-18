@@ -249,7 +249,7 @@ char* lexer_get_token_stream(Args* out_buff, char* stmt)
     token_stream = arg_setStr(token_stream, "", "");
     int32_t size = strGetSize(stmt);
     uint8_t bracket_depth = 0;
-    char cn2, cn1, c0, c1, c2, c3, c4, c5, c6;
+    char cn1, c0;
     int32_t symbol_start_index = -1;
     uint8_t in_quotes = 0;
     bool is_number = false;
@@ -258,15 +258,8 @@ char* lexer_get_token_stream(Args* out_buff, char* stmt)
     /* process */
     for (int32_t i = 0; i < size; i++) {
         /* update char */
-        cn2 = (i >= 2) ? stmt[i - 2] : 0;
         cn1 = (i >= 1) ? stmt[i - 1] : 0;
         c0 = stmt[i];
-        c1 = (i + 1 < size) ? stmt[i + 1] : 0;
-        c2 = (i + 2 < size) ? stmt[i + 2] : 0;
-        c3 = (i + 3 < size) ? stmt[i + 3] : 0;
-        c4 = (i + 4 < size) ? stmt[i + 4] : 0;
-        c5 = (i + 5 < size) ? stmt[i + 5] : 0;
-        c6 = (i + 6 < size) ? stmt[i + 6] : 0;
         if (-1 == symbol_start_index) {
             is_number = ((c0 >= '0') && (c0 <= '9'));
             symbol_start_index = i;
