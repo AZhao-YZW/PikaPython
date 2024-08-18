@@ -1,7 +1,7 @@
 #-------------------- HELP ---------------------#
 if [ "$1" = "-h" ]; then
     echo 'FORMAT: sh run.sh [REPL|FILE]'
-    exit 1
+    exit 0
 fi
 
 #----------------- SELECT MODE -----------------#
@@ -13,7 +13,7 @@ elif [ "$1" = "REPL" ] || [ "$1" = "FILE" ]; then
     echo "===== use $1 mode ====="
 else
     echo '*ERROR*: mode is wrong, support value [REPL|FILE]'
-    exit 1
+    exit 0
 fi
 
 if [ "$mode" = "REPL" ]; then

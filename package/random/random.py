@@ -29,7 +29,7 @@ def randrange(start: int, stop: int, step: int) -> int:
     return _random.randrange(start, stop, step)
 
 
-def seed(a: int) -> None:
+def seed(a: int) -> object:
     """
     Initialize the random number generator.
     """
