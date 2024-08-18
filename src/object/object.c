@@ -23,3 +23,16 @@
  */
 #include "object.h"
 #include "dataString.h"
+
+char* fast_itoa(char* buf, uint32_t val) {
+    char* p = &buf[10];
+    *p = '\0';
+    while (val >= 10) {
+        p--;
+        *p = '0' + (val % 10);
+        val /= 10;
+    }
+    p--;
+    *p = '0' + val;
+    return p;
+}
