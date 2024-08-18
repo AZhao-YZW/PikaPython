@@ -1,6 +1,6 @@
 #-------------------- HELP ---------------------#
 if [ "$1" = "-h" ]; then
-    echo 'FORMAT: sh build.sh [REPL|FILE|ALL] [LEAF|PIKA]'
+    echo 'FORMAT: sh build.sh [REPL|FILE|ALL] [LEAF|PIKA] [PRECPL]'
     exit 1
 fi
 
@@ -25,6 +25,23 @@ elif [ "$2" = "LEAF" ] || [ "$2" = "PIKA" ]; then
     echo "===== use $2 core ====="
 else
     echo '*ERROR*: core is wrong, support value [LEAF|PIKA]'
+    exit 1
+fi
+
+#----------------- PRE COMPILE -----------------#
+if [ "$3" = "PRECPL" ]; then
+    cd ./linux/pikapython/
+    if [ `command -v wine` ]; then
+        echo "===== use WINE pre-compiler ====="
+        wine ./rust-msc-latest-win10.exe
+    else
+        echo "===== use LINUX pre-compiler ====="
+        ./rust-msc-latest-linux
+    fi
+    wait
+    cd -
+elif [ -n "$3" ]; then
+    echo '*ERROR*: pre-compiler is wrong, support value [PRECPL]'
     exit 1
 fi
 
