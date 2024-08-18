@@ -35,6 +35,8 @@
 #include "PikaStdLib_REPL.h"
 #include "PikaStdTask.h"
 #include "PikaStdTask_Task.h"
+#include "_time.h"
+#include "_time_struct_time.h"
 #include "builtins_ArithmeticError.h"
 #include "builtins_Exception.h"
 #include "builtins_AssertionError.h"
@@ -1558,6 +1560,74 @@ PikaObj *New_PikaStdTask_Task(Args *args){
 
 Arg *PikaStdTask_Task(PikaObj *self){
     return obj_newObjInPackage(New_PikaStdTask_Task);
+}
+#endif
+
+#ifndef PIKA_MODULE__TIME_DISABLE
+void _time_struct_time___getitem__Method(PikaObj *self, Args *_args_){
+    int __key = args_getInt(_args_, "__key");
+    int res = _time_struct_time___getitem__(self, __key);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _time_struct_time___getitem__,
+    "__getitem__", "__key"
+);
+
+void _time_struct_time___iter__Method(PikaObj *self, Args *_args_){
+    Arg* res = _time_struct_time___iter__(self);
+    method_returnArg(_args_, res);
+}
+method_typedef(
+    _time_struct_time___iter__,
+    "__iter__", ""
+);
+
+void _time_struct_time___len__Method(PikaObj *self, Args *_args_){
+    int res = _time_struct_time___len__(self);
+    method_returnInt(_args_, res);
+}
+method_typedef(
+    _time_struct_time___len__,
+    "__len__", ""
+);
+
+void _time_struct_time___next__Method(PikaObj *self, Args *_args_){
+    Arg* res = _time_struct_time___next__(self);
+    method_returnArg(_args_, res);
+}
+method_typedef(
+    _time_struct_time___next__,
+    "__next__", ""
+);
+
+void _time_struct_time___str__Method(PikaObj *self, Args *_args_){
+    char* res = _time_struct_time___str__(self);
+    method_returnStr(_args_, res);
+}
+method_typedef(
+    _time_struct_time___str__,
+    "__str__", ""
+);
+
+class_def(_time_struct_time){
+    __BEFORE_MOETHOD_DEF
+    method_def(_time_struct_time___iter__, 911732085),
+    method_def(_time_struct_time___next__, 1090305216),
+    method_def(_time_struct_time___getitem__, 1535436016),
+    method_def(_time_struct_time___len__, 2047989248),
+    method_def(_time_struct_time___str__, 2056834106),
+};
+class_inhert(_time_struct_time, TinyObj);
+
+PikaObj *New__time_struct_time(Args *args){
+    PikaObj *self = New_TinyObj(args);
+    obj_setClass(self, _time_struct_time);
+    return self;
+}
+
+Arg *_time_struct_time(PikaObj *self){
+    return obj_newObjInPackage(New__time_struct_time);
 }
 #endif
 
