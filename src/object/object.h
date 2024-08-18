@@ -26,4 +26,6 @@
 
 #include "stdint.h"
 
+char* fast_itoa(char* buf, uint32_t val);
+
 #endif

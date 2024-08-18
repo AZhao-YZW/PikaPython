@@ -47,5 +47,5 @@ a: 1
 b: 2
 *args: ()
 Assertion "self != 0" failed, in function: arg_getType(). 
-  (at /home/azhao/LeafScript/PikaPython/build/linux/../../src/dataArg.h:140)
+  (at /home/build/linux/../../src/dataArg.h:140)
 Aborted
