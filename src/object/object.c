@@ -22,7 +22,6 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "object.h"
-#include "dataString.h"
 
 char* fast_itoa(char* buf, uint32_t val) {
     char* p = &buf[10];
