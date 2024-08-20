@@ -25,7 +25,28 @@
 #define __OBJECT_H__
 
 #include "stdint.h"
+#include "PikaObj.h"
+
+typedef enum {
+    SET_INT,
+    SET_PTR,
+    SET_REF,
+    SET_FLOAT,
+    SET_STR,
+    SET_NONE,
+    SET_BYTES
+} SetType;
 
 char* fast_itoa(char* buf, uint32_t val);
+PIKA_RES obj_setInt(PikaObj* self, char* argPath, int64_t val);
+PIKA_RES obj_setObj(PikaObj* self, char* argPath, PikaObj* obj);
+PIKA_RES obj_setRef(PikaObj* self, char* argPath, PikaObj* pointer);
+PIKA_RES obj_setPtr(PikaObj* self, char* argPath, void* pointer);
+PIKA_RES obj_setFloat(PikaObj* self, char* argPath, pika_float value);
+PIKA_RES obj_setStr(PikaObj* self, char* argPath, char* str);
+PIKA_RES obj_setNone(PikaObj* self, char* argPath);
+PIKA_RES obj_setArg(PikaObj* self, char* argPath, Arg* arg);
+PIKA_RES obj_setArg_noCopy(PikaObj* self, char* argPath, Arg* arg);
+PIKA_RES obj_setBytes(PikaObj* self, char* argPath, uint8_t* src, size_t size);
 
 #endif
