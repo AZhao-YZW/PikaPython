@@ -519,7 +519,7 @@ static int32_t PikaVMFrame_getAddrOffsetOfJmpBack(PikaVMFrame* vm) {
     int blockDeepthGot = -1;
     int blockDeepthNow = PikaVMFrame_getBlockDeepthNow(vm);
 
-    /* find loop deepth */
+    /* find loop depth */
     while (1) {
         offset -= instructUnit_getSize();
         InstructUnit* insUnitThis =
@@ -565,7 +565,7 @@ static int32_t PikaVMFrame_getAddrOffsetFromJmp(PikaVMFrame* vm) {
     int offset = 0;
     /* run byte Code */
     InstructUnit* this_ins_unit = PikaVMFrame_getInstructNow(vm);
-    int thisBlockDeepth = instructUnit_getBlockDeepth(this_ins_unit);
+    int this_blk_depth = instructUnit_getBlockDeepth(this_ins_unit);
     int8_t blockNum = 0;
     int pc_max = (int)PikaVMFrame_getInstructArraySize(vm);
     if (vm->jmp > 0) {
@@ -580,7 +580,7 @@ static int32_t PikaVMFrame_getAddrOffsetFromJmp(PikaVMFrame* vm) {
             if (instructUnit_getIsNewLine(this_ins_unit)) {
                 uint8_t blockDeepth =
                     instructUnit_getBlockDeepth(this_ins_unit);
-                if (blockDeepth <= thisBlockDeepth) {
+                if (blockDeepth <= this_blk_depth) {
                     blockNum++;
                 }
             }
@@ -596,7 +596,7 @@ static int32_t PikaVMFrame_getAddrOffsetFromJmp(PikaVMFrame* vm) {
             if (instructUnit_getIsNewLine(this_ins_unit)) {
                 uint8_t blockDeepth =
                     instructUnit_getBlockDeepth(this_ins_unit);
-                if (blockDeepth == thisBlockDeepth) {
+                if (blockDeepth == this_blk_depth) {
                     blockNum--;
                 }
             }
@@ -2498,16 +2498,16 @@ static Arg* _VM_JEZ(PikaObj* self,
                     char* data,
                     Arg* arg_ret_reg,
                     int bAssert) {
-    int thisBlockDeepth = PikaVMFrame_getBlockDeepthNow(vm);
+    int this_blk_depth = PikaVMFrame_getBlockDeepthNow(vm);
     int jmp_expect = fast_atoi(data);
-    vm->ireg[thisBlockDeepth] = (pika_bool)!bAssert;
+    vm->ireg[this_blk_depth] = (pika_bool)!bAssert;
 
     if (0 == bAssert) {
         /* jump */
         vm->jmp = jmp_expect;
     }
 
-    /* restore loop deepth */
+    /* restore loop depth */
     if (2 == jmp_expect && 0 == bAssert) {
         int block_deepth_now = PikaVMFrame_getBlockDeepthNow(vm);
         vm->loop_deepth = block_deepth_now;
@@ -3237,7 +3237,7 @@ static Arg* __VM_instruction_handler_DEF(PikaObj* self,
                                          PikaVMFrame* vm,
                                          char* data,
                                          uint8_t is_class) {
-    int thisBlockDeepth = PikaVMFrame_getBlockDeepthNow(vm);
+    int this_blk_depth = PikaVMFrame_getBlockDeepthNow(vm);
 
     PikaObj* hostObj = vm->locals;
     uint8_t is_in_class = 0;
@@ -3255,7 +3255,7 @@ static Arg* __VM_instruction_handler_DEF(PikaObj* self,
             offset += instructUnit_getSize();
             continue;
         }
-        if (instructUnit_getBlockDeepth(ins_unit_now) == thisBlockDeepth + 1) {
+        if (instructUnit_getBlockDeepth(ins_unit_now) == this_blk_depth + 1) {
             if (is_in_class) {
                 class_defineObjectMethod(hostObj, data, (Method)ins_unit_now,
                                          self, vm->bytecode_frame);
@@ -3368,8 +3368,8 @@ static Arg* VM_instruction_handler_NEL(PikaObj* self,
                                        PikaVMFrame* vm,
                                        char* data,
                                        Arg* arg_ret_reg) {
-    int thisBlockDeepth = PikaVMFrame_getBlockDeepthNow(vm);
-    if (0 == vm->ireg[thisBlockDeepth]) {
+    int this_blk_depth = PikaVMFrame_getBlockDeepthNow(vm);
+    if (0 == vm->ireg[this_blk_depth]) {
         /* set __else flag */
         vm->jmp = fast_atoi(data);
     }
@@ -4313,7 +4313,7 @@ void instructArray_append(InstructArray* self, InstructUnit* ins_unit) {
 }
 
 void instructUnit_init(InstructUnit* ins_unit) {
-    ins_unit->deepth = 0;
+    ins_unit->depth = 0;
     ins_unit->const_pool_index = 0;
     ins_unit->isNewLine_instruct = 0;
 }

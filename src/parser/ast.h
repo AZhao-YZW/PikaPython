@@ -21,35 +21,20 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __PARSER_H__
-#define __PARSER_H__
+#ifndef __AST_H__
+#define __AST_H__
 
-#include "PikaPlatform.h"
-#include "PikaObj.h"
-#include "dataArgs.h"
-#include "dataStack.h"
+#define _VAL_NEED_INIT -1
 
-typedef PikaObj AST;
+enum {
+    BLK_NOT_MATCHED,
+    BLK_MATCHED,
+    BLK_EXIT
+};
 
-typedef struct {
-    Stack* stack;
-    int depth;
-} BlockState;
-
-typedef struct Parser {
-    Args line_buffs;
-    Args gen_buffs;
-    BlockState blk_state;
-    int blk_depth_origin;
-    char *(*ast_to_target)(struct Parser* self, AST* ast);
-    bool is_gen_bytecode;
-    ByteCodeFrame* bytecode_frame;
-    uint8_t this_blk_depth;
-    uint32_t label_pc;
-} Parser;
-
-char* parser_remove_comment(char* line);
-Parser* parser_create(void);
-AST* parser_line_to_ast(Parser* self, char* line);
+enum kw_match_type {
+    KW_START,
+    KW_EQUAL
+};
 
 #endif
