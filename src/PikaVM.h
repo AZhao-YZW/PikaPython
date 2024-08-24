@@ -319,6 +319,19 @@ Arg* pikaVM_runByteCode_exReturn(PikaObj* self,
                                  PikaVMThread* vm_thread,
                                  pika_bool is_const_bytecode,
                                  char* return_name);
+
+int pikaVMThread_init(PikaVMThread* state, uint64_t thread_id);
+PikaVMThread* pikaVMThread_require(void);
+void pikaVMThread_delete(void);
+int pikaVMThread_pushError(PikaVMThread* state, PikaVMError* error);
+PikaVMError* pikaVMThread_popError(PikaVMThread* state);
+int pikaVMFrame_checkErrorCode(PikaVMFrame* state);
+int pikaVMFrame_checkErrorStack(PikaVMFrame* vm);
+int pikaVMThread_clearErrorStack(PikaVMThread* state);
+int pikaVMThread_clearExceptionStack(PikaVMThread* vmThread);
+int pikaVMFrame_checkExceptionStack(PikaVMFrame* vm);
+int pikaVMThread_convertExceptionStack(PikaVMThread* vmThread);
+PikaVMError* pikaVMThread_getErrorCurrent(PikaVMThread* state);
 InstructUnit* instructArray_getNow(InstructArray* self);
 InstructUnit* instructArray_getNext(InstructArray* self);
 VMParameters* pikaVM_runSingleFile(PikaObj* self, char* filename);

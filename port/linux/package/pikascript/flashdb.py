@@ -3,6 +3,7 @@ import struct
 
 KVDB_CTRL = _flashdb.KVDB_CTRL()
 
+
 class KVDB(_flashdb.KVDB):
 
     def get_blob(self, key, size):
@@ -28,3 +29,20 @@ class KVDB(_flashdb.KVDB):
         if len(vs) == 1:
             return vs[0]
         return vs
+
+
+class TSDB(_flashdb.TSDB):
+    def __init__(self, name: str, path: str, max_len: int = 1024,
+                 user_data=None):
+        super().__init__(name, path, max_len, user_data)
+
+    def tsl_iter_by_time(self, from_time, to_time,
+                         callback: any, user_data: any) -> int:
+        print('tsl_iter_by_time')
+        print('from_time:', from_time)
+        print('to_time:', to_time)
+        return super().tsl_iter_by_time(from_time, to_time, callback, user_data)
+
+
+class TSL(_flashdb.TSL):
+    pass

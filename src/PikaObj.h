@@ -110,13 +110,25 @@ typedef enum {
     TRY_RESULT_RAISE,
 } TRY_RESULT;
 
-typedef struct PikaThreadState PikaVMThread;
-struct PikaThreadState {
+typedef struct PikaVMError PikaVMError;
+struct PikaVMError {
+    int8_t code;
+    int8_t line_code;
+    PikaVMError* next;
+};
+
+typedef struct PikaVMThread PikaVMThread;
+struct PikaVMThread {
     TRY_STATE try_state;
     TRY_RESULT try_result;
-    int8_t error_code;
-    uint8_t line_error_code;
-    uint8_t try_error_code;
+    PikaVMError* error_stack;
+    PikaVMError* exception_stack;
+    uint32_t error_stack_deepth;
+    uint32_t error_stack_deepth_max;
+    uint8_t invoke_deepth;
+    uint64_t thread_id;
+    struct PikaVMThread* next;
+    uint8_t is_sub_thread;
 };
 
 typedef PikaObj VMParameters;
@@ -136,11 +148,13 @@ struct PikaVMFrame {
     pika_bool ireg[PIKA_REGIST_SIZE];
     PikaObj* oreg[16];
     pika_bool in_repl;
+    PikaVMError error;
 };
 
+typedef PikaObj* (*NewFun)(Args* args);
 struct PikaObj {
     Args* list;
-    void* constructor;
+    NewFun constructor;
 #if PIKA_GC_MARK_SWEEP_ENABLE
     PikaObj* gcNext;
 #endif
@@ -228,7 +242,6 @@ static inline void obj_clearFlag(PikaObj* self, uint16_t flag) {
 #endif
 }
 
-typedef PikaObj* (*NewFun)(Args* args);
 typedef PikaObj* (*InitFun)(PikaObj* self, Args* args);
 typedef void (*Method)(PikaObj* self, Args* args);
 
@@ -388,11 +401,14 @@ Method methodArg_getPtr(Arg* method_arg);
 VMParameters* obj_run(PikaObj* self, char* cmd);
 Arg* pika_runFunction0(Arg* functionArg);
 Arg* pika_runFunction1(Arg* methodArg, Arg* arg1);
+Arg* pika_runFunction2(Arg* methodArg, Arg* arg1, Arg* arg2);
 Arg* obj_runMethodArg0(PikaObj* self, Arg* methodArg);
 Arg* obj_runMethodArg1(PikaObj* self, Arg* methodArg, Arg* arg1);
+Arg* obj_runMethodArg2(PikaObj* self, Arg* methodArg, Arg* arg1, Arg* arg2);
 Arg* obj_runMethod0(PikaObj* self, char* methodName);
 Arg* obj_runMethod1(PikaObj* self, char* methodName, Arg* arg1);
-PikaObj* New_PikaObj(void);
+Arg* obj_runMethod2(PikaObj* self, char* methodName, Arg* arg1, Arg* arg2);
+PikaObj* New_PikaObj(Args* args);
 PikaObj* New_PikaObj_noGC(void);
 
 /* tools */
@@ -742,7 +758,7 @@ const MethodProp floatMethod = {
 
 
 #if defined(_WIN32) || \
-    (defined(__ARMCC_VERSION) && (__ARMCC_VERSION < 6000000))
+    (defined(__ARMCC_VERSION) && (__ARMCC_VERSION < 6000000)) || defined(__IAR_SYSTEMS_ICC__)
 #define __BEFORE_MOETHOD_DEF                        \
     {                                               \
         ._ =                                        \
@@ -875,6 +891,7 @@ pika_bool pikaTuple_getBool(PikaTuple* self, int index);
 pika_float pikaList_getFloat(PikaList* self, int index);
 char* pikaList_getStr(PikaList* self, int index);
 void* pikaList_getPtr(PikaList* self, int index);
+PikaObj* pikaList_getObj(PikaList* self, int index);
 Arg* pikaList_get(PikaList* self, int index);
 #define pikaList_getArg pikaList_get
 size_t pikaList_getSize(PikaList* self);
@@ -928,6 +945,7 @@ pika_bool pikaDict_getBool(PikaDict* self, char* name);
 pika_float pikaDict_getFloat(PikaDict* self, char* name);
 char* pikaDict_getStr(PikaDict* self, char* name);
 void* pikaDict_getPtr(PikaDict* self, char* name);
+PikaObj* pikaDict_getObj(PikaDict* self, char* name);
 int pikaDict_getSize(PikaDict* self);
 Arg* pikaDict_getArgByidex(PikaDict* self, int index);
 Arg* pikaDict_get(PikaDict* self, char* name);

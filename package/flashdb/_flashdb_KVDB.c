@@ -1,9 +1,7 @@
 #include "_flashdb_KVDB.h"
-#include <stdio.h>
 #include "_flashdb_KVDB_CTRL.h"
-#include "_flashdb_kvdb_t.h"
+#include <stdio.h>
 #include "flashdb.h"
-#include "pikaScript.h"
 
 // #include "fdb_def.h"
 #define PIKA_USING_FLASHDB1 1
@@ -154,18 +152,19 @@ void _flashdb_KVDB_deinit(PikaObj* self) {
     fdb_kvdb_deinit(_OBJ2KVDB(self));
 }
 
-struct _flashdb_foreach_context {
+struct _kvdb_foreach_context {
     struct fdb_default_kv_node* def_kv_table;
     PikaObj* self;
 };
+
 int32_t _flashdb_foreach(PikaObj* self_dict,
                          Arg* keyEach,
                          Arg* valEach,
                          void* context) {
     char* key = arg_getStr(keyEach);
     ArgType argt_val = arg_getType(valEach);
-    struct _flashdb_foreach_context* foreach_context =
-        (struct _flashdb_foreach_context*)context;
+    struct _kvdb_foreach_context* foreach_context =
+        (struct _kvdb_foreach_context*)context;
     struct fdb_default_kv_node* def_kv_table = foreach_context->def_kv_table;
     PikaObj* self = foreach_context->self;
 
@@ -235,7 +234,7 @@ void _flashdb_KVDB___init__(PikaObj* self,
             _FDBBUFFS, (4 * sizeof(struct fdb_default_kv_node)));
     g_def_kv_table_idx = 0;
 
-    struct _flashdb_foreach_context context = {
+    struct _kvdb_foreach_context context = {
         .def_kv_table = def_kv_table,
         .self = self,
     };

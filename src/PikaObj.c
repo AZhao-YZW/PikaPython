@@ -28,6 +28,7 @@
 
 #include "PikaObj.h"
 #include <stdint.h>
+#include <inttypes.h>
 #include "BaseObj.h"
 #include "PikaCompiler.h"
 #include "PikaParser.h"
@@ -1840,9 +1841,9 @@ char _await_getchar(sh_getchar fn_getchar) {
 #define PIKA_MAGIC_CODE_LEN 4
 
 /* return file size */
-PIKA_WEAK uint32_t _pikaShell_recv_file(ShellConfig* cfg,
-                                        uint8_t* magic_code,
-                                        uint8_t** pbuff) {
+uint32_t _pikaShell_recv_file_direct(ShellConfig* cfg,
+                                     uint8_t* magic_code,
+                                     uint8_t** pbuff) {
     uint32_t size = 0;
     for (int i = 0; i < 4; i++) {
         uint8_t* size_byte = (uint8_t*)&size;
@@ -1861,6 +1862,13 @@ PIKA_WEAK uint32_t _pikaShell_recv_file(ShellConfig* cfg,
     }
     *pbuff = buff;
     return size;
+}
+
+/* return file size */
+PIKA_WEAK uint32_t _pikaShell_recv_file(ShellConfig* cfg,
+                                        uint8_t* magic_code,
+                                        uint8_t** pbuff) {
+    return _pikaShell_recv_file_direct(cfg, magic_code, pbuff);
 }
 
 void _do_pikaScriptShell(PikaObj* self, ShellConfig* cfg) {
@@ -1948,7 +1956,12 @@ void _do_pikaScriptShell(PikaObj* self, ShellConfig* cfg) {
                 magic_code[2 + i] = cfg->fn_getchar();
             }
             uint8_t* recv = NULL;
-            uint32_t size = _pikaShell_recv_file(cfg, magic_code, &recv);
+            uint32_t size = 0;
+            if (magic_code[2] == 'y' && magic_code[3] == 'a') {
+                size = _pikaShell_recv_file(cfg, magic_code, &recv);
+            } else {
+                size = _pikaShell_recv_file_direct(cfg, magic_code, &recv);
+            }
             pika_platform_printf(
                 "\r\n=============== [File] ===============\r\n");
             pika_platform_printf("[   Info] Recived size: %d\r\n", size);
@@ -1960,6 +1973,9 @@ void _do_pikaScriptShell(PikaObj* self, ShellConfig* cfg) {
                     "=============== [ RUN] ===============\r\n");
                 pikaVM_runByteCodeInconstant(self, recv);
                 pikaFree(recv, size);
+                // pika_platform_printf("%s", cfg->prefix);
+                // continue;
+                //! Return for example like lvgl handler to continue.
                 return;
             }
             if (magic_code[3] == 'a') {
@@ -2051,7 +2067,7 @@ void pikaShellSetEcho(pika_bool enable_echo) {
 
 void obj_setErrorCode(PikaObj* self, int32_t errCode) {
     pika_assert(NULL != self->vmFrame);
-    self->vmFrame->vm_thread->error_code = errCode;
+    self->vmFrame->error.code = errCode;
 }
 
 void method_returnBytes(Args* args, uint8_t* val) {
@@ -2428,7 +2444,7 @@ pika_bool pikaGC_islock(void) {
 #endif
 }
 
-PikaObj* New_PikaObj(void) {
+PikaObj* New_PikaObj(Args* args) {
     PikaObj* self = pikaMalloc(sizeof(PikaObj));
     /* List */
     self->list = New_args(NULL);
@@ -2637,13 +2653,12 @@ int obj_runModule(PikaObj* self, char* module_name) {
         return 1;
     }
 
-    PikaVMThread vm_thread = {.try_state = TRY_STATE_NONE,
-                              .try_result = TRY_RESULT_NONE};
+    PikaVMThread* vm_thread = pikaVMThread_require();
     pikaVM_runBytecode_ex_cfg cfg = {0};
     cfg.globals = self;
     cfg.locals = self;
     cfg.name = module_name;
-    cfg.vm_thread = &vm_thread;
+    cfg.vm_thread = vm_thread;
     cfg.is_const_bytecode = pika_true;
     pikaVM_runByteCode_ex(self, bytecode, &cfg);
     return 0;
@@ -2723,7 +2738,7 @@ void pika_eventListener_registEventCallback(PikaEventListener* listener,
                                             Arg* eventCallback) {
     pika_assert(NULL != listener);
     char hash_str[32] = {0};
-    pika_sprintf(hash_str, "C%d", eventId);
+    pika_sprintf(hash_str, "C%" PRIuPTR, eventId);
     obj_newDirectObj(listener, hash_str, New_TinyObj);
     PikaObj* oHandle = obj_getPtr(listener, hash_str);
     obj_setEventCallback(oHandle, eventId, eventCallback, listener);
@@ -2760,6 +2775,24 @@ void pika_eventListener_deinit(PikaEventListener** p_self) {
     }
 }
 
+Arg* pika_runFunction0_ex(PikaObj* host, Arg* functionArg) {
+    obj_setArg(host, "@f", functionArg);
+    /* clang-format off */
+    PIKA_PYTHON(
+    @r = @f()
+    )
+    /* clang-format on */
+    const uint8_t bytes[] = {
+        0x08, 0x00, 0x00, 0x00, /* instruct array size */
+        0x00, 0x82, 0x01, 0x00, 0x00, 0x04, 0x04, 0x00, /* instruct array */
+        0x07, 0x00, 0x00, 0x00,                         /* const pool size */
+        0x00, 0x40, 0x66, 0x00, 0x40, 0x72, 0x00,       /* const pool */
+    };
+    Arg* res = pikaVM_runByteCodeReturn(host, bytes, "@r");
+    arg_deinit(functionArg);
+    return res;
+}
+
 Arg* pika_runFunction1_ex(PikaObj* host, Arg* functionArg, Arg* arg1) {
     obj_setArg(host, "@d", arg1);
     obj_setArg(host, "@f", functionArg);
@@ -2782,21 +2815,38 @@ Arg* pika_runFunction1_ex(PikaObj* host, Arg* functionArg, Arg* arg1) {
     return res;
 }
 
-Arg* pika_runFunction0_ex(PikaObj* host, Arg* functionArg) {
+Arg* pika_runFunction2_ex(PikaObj* host,
+                          Arg* functionArg,
+                          Arg* arg1,
+                          Arg* arg2) {
+    obj_setArg(host, "@d", arg1);
+    obj_setArg(host, "@e", arg2);
     obj_setArg(host, "@f", functionArg);
     /* clang-format off */
     PIKA_PYTHON(
-    @r = @f()
+    @r = @f(@d, @e)
     )
     /* clang-format on */
     const uint8_t bytes[] = {
-        0x08, 0x00, 0x00, 0x00, /* instruct array size */
-        0x00, 0x82, 0x01, 0x00, 0x00, 0x04, 0x04, 0x00, /* instruct array */
-        0x07, 0x00, 0x00, 0x00,                         /* const pool size */
-        0x00, 0x40, 0x66, 0x00, 0x40, 0x72, 0x00,       /* const pool */
+        0x10, 0x00, 0x00, 0x00, /* instruct array size */
+        0x10, 0x81, 0x01, 0x00, 0x10, 0x01, 0x04, 0x00,
+        0x00, 0x02, 0x07, 0x00, 0x00, 0x04, 0x0a, 0x00, /* instruct array */
+        0x0d, 0x00, 0x00, 0x00,                         /* const pool size */
+        0x00, 0x40, 0x64, 0x00, 0x40, 0x65, 0x00, 0x40,
+        0x66, 0x00, 0x40, 0x72, 0x00,
+        /* const pool */
     };
     Arg* res = pikaVM_runByteCodeReturn(host, bytes, "@r");
+    arg_deinit(arg1);
+    arg_deinit(arg2);
     arg_deinit(functionArg);
+    return res;
+}
+
+Arg* pika_runFunction0(Arg* functionArg) {
+    PikaObj* locals = New_TinyObj(NULL);
+    Arg* res = pika_runFunction0_ex(locals, functionArg);
+    obj_deinit(locals);
     return res;
 }
 
@@ -2807,9 +2857,9 @@ Arg* pika_runFunction1(Arg* functionArg, Arg* arg1) {
     return res;
 }
 
-Arg* pika_runFunction0(Arg* functionArg) {
+Arg* pika_runFunction2(Arg* functionArg, Arg* arg1, Arg* arg2) {
     PikaObj* locals = New_TinyObj(NULL);
-    Arg* res = pika_runFunction0_ex(locals, functionArg);
+    Arg* res = pika_runFunction2_ex(locals, functionArg, arg1, arg2);
     obj_deinit(locals);
     return res;
 }
@@ -2832,12 +2882,25 @@ Arg* obj_runMethod1(PikaObj* self, char* methodName, Arg* arg1) {
     return aRes;
 }
 
+Arg* obj_runMethod2(PikaObj* self, char* methodName, Arg* arg1, Arg* arg2) {
+    Arg* aMethod = obj_getMethodArg(self, methodName);
+    if (NULL == aMethod) {
+        return NULL;
+    }
+    Arg* aRes = pika_runFunction2_ex(self, aMethod, arg1, arg2);
+    return aRes;
+}
+
 Arg* obj_runMethodArg0(PikaObj* self, Arg* methodArg) {
     return pika_runFunction0_ex(self, methodArg);
 }
 
 Arg* obj_runMethodArg1(PikaObj* self, Arg* methodArg, Arg* arg1) {
     return pika_runFunction1_ex(self, methodArg, arg1);
+}
+
+Arg* obj_runMethodArg2(PikaObj* self, Arg* methodArg, Arg* arg1, Arg* arg2) {
+    return pika_runFunction2_ex(self, methodArg, arg1, arg2);
 }
 
 Arg* __eventListener_runEvent(PikaEventListener* listener,
@@ -2847,7 +2910,7 @@ Arg* __eventListener_runEvent(PikaEventListener* listener,
     pika_debug("event handler: %p", handler);
     if (NULL == handler) {
         pika_platform_printf(
-            "Error: can not find event handler by id: [0x%02x]\r\n", eventId);
+            "Error: can not find event handler by id: [0x%02" PRIxPTR "]\r\n", eventId);
         return NULL;
     }
     Arg* eventCallBack = obj_getArg(handler, "eventCallBack");
@@ -3845,7 +3908,12 @@ pika_bool _isinstance(Arg* aObj, Arg* classinfo) {
             res = pika_true;
             goto __exit;
         }
-        aObjType = methodArg_super(aObjType, &objProp);
+        Arg* aObjSuper = methodArg_super(aObjType, &objProp);
+        if ((NULL == aObjSuper) && (NULL == objProp)) {
+            res = pika_false;
+            goto __exit;
+        }
+        aObjType = aObjSuper;
         if (NULL != objProp) {
             if (!(arg_getType(classinfo) ==
                   ARG_TYPE_METHOD_NATIVE_CONSTRUCTOR)) {
@@ -4174,8 +4242,8 @@ void _do_vsysOut(char* fmt, va_list args) {
 
 void obj_setSysOut(PikaObj* self, char* fmt, ...) {
     if (NULL != self->vmFrame) {
-        if (self->vmFrame->vm_thread->error_code == 0) {
-            self->vmFrame->vm_thread->error_code = PIKA_RES_ERR_RUNTIME_ERROR;
+        if (self->vmFrame->error.code == PIKA_RES_OK) {
+            self->vmFrame->error.code = PIKA_RES_ERR_RUNTIME_ERROR;
         }
         if (self->vmFrame->vm_thread->try_state == TRY_STATE_INNER) {
             return;
@@ -4343,19 +4411,22 @@ PikaObj* builtins_bytearray_split(PikaObj* self, PikaTuple* vars) {
         obj_setSysOut(self, "TypeError: bytes is required");
         return NULL;
     }
-    PikaList* list = New_PikaList();
-    uint8_t* data = obj_getBytes(self, "raw");
-    size_t len = obj_getBytesSize(self, "raw");
-    if (len == 0) {
-        pikaList_append(list, arg_newBytes((uint8_t*)"", 0));
-        goto __exit;
-    }
+
+    PikaList* list = NULL;
     uint8_t* sep_data = arg_getBytes(sep);
     size_t sep_len = arg_getBytesSize(sep);
 
     if (sep_len == 0) {
         obj_setErrorCode(self, 1);
         obj_setSysOut(self, "ValueError: empty separator");
+        goto __exit;
+    }
+
+    list = New_PikaList();
+    uint8_t* data = obj_getBytes(self, "raw");
+    size_t len = obj_getBytesSize(self, "raw");
+    if (len == 0) {
+        pikaList_append(list, arg_newBytes((uint8_t*)"", 0));
         goto __exit;
     }
 
@@ -4542,6 +4613,11 @@ char* pikaList_getStr(PikaList* self, int index) {
 void* pikaList_getPtr(PikaList* self, int index) {
     Arg* arg = pikaList_get(self, index);
     return arg_getPtr(arg);
+}
+
+PikaObj* pikaList_getObj(PikaList* self, int index) {
+    Arg* arg = pikaList_get(self, index);
+    return arg_getObj(arg);
 }
 
 PIKA_RES pikaList_append(PikaList* self, Arg* arg) {
@@ -4765,6 +4841,10 @@ char* pikaDict_getStr(PikaDict* self, char* name) {
 }
 
 void* pikaDict_getPtr(PikaDict* self, char* name) {
+    return args_getPtr(_OBJ2DICT(self), (name));
+}
+
+PikaObj* pikaDict_getObj(PikaDict* self, char* name) {
     return args_getPtr(_OBJ2DICT(self), (name));
 }
 
