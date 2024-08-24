@@ -1,3 +1,7 @@
 [submodule "port/linux/package/lvgl/lvgl"]
 	path = port/linux/package/lvgl/lvgl
 	url = https://gitee.com/Lyon1998/lvgl
+
+[submodule "leafpy_bsp"]
+	path = leafpy_bsp
+	url = https://github.com/LeafScript/LeafPythonBsp
