@@ -1,1 +1,0 @@
-#define PIKA_NANO_ENABLE 1
