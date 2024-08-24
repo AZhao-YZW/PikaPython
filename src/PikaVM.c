@@ -33,6 +33,7 @@
 #include "PikaPlatform.h"
 #include "dataArg.h"
 #include "dataStrs.h"
+#include "vm.h"
 #if PIKA_MATH_ENABLE
 #include <math.h>
 #endif
@@ -203,24 +204,13 @@ static PIKA_RES _jcq_remove(volatile JmpBufCQ* cq, jmp_buf* pos) {
 
 void _VMEvent_deinit(void) {
 #if !PIKA_EVENT_ENABLE
-    pika_platform_printf("PIKA_EVENT_ENABLE is not enable");
-    pika_platform_panic_handle();
+    pika_event_not_enable();
 #else
     for (int i = 0; i < PIKA_EVENT_LIST_SIZE; i++) {
-        if (NULL != g_PikaVMState.cq.res[i]) {
-            arg_deinit(g_PikaVMState.cq.res[i]);
-            g_PikaVMState.cq.res[i] = NULL;
-        }
-        if (NULL != g_PikaVMState.cq.data[i].arg) {
-            arg_deinit(g_PikaVMState.cq.data[i].arg);
-            g_PikaVMState.cq.data[i].arg = NULL;
-        }
-        if (NULL != g_PikaVMState.sq.res[i]) {
-            arg_deinit(g_PikaVMState.sq.res[i]);
-            g_PikaVMState.sq.res[i] = NULL;
-        }
+        poiner_set_NULL((void**)&g_PikaVMState.cq.res[i]);
+        poiner_set_NULL((void**)&g_PikaVMState.cq.data[i].arg);
+        poiner_set_NULL((void**)&g_PikaVMState.sq.res[i]);
         g_PikaVMState.cq.id[i] = 0;
-        g_PikaVMState.cq.data[i].arg = NULL;
         g_PikaVMState.cq.listener[i] = NULL;
         g_PikaVMState.sq.id[i] = 0;
         g_PikaVMState.sq.data[i].signal = 0;
@@ -249,8 +239,7 @@ PIKA_RES __eventListener_pushEvent(PikaEventListener* lisener,
                                    uintptr_t eventId,
                                    Arg* eventData) {
 #if !PIKA_EVENT_ENABLE
-    pika_platform_printf("PIKA_EVENT_ENABLE is not enable");
-    pika_platform_panic_handle();
+    pika_event_not_enable();
     return PIKA_RES_ERR_OPERATION_FAILED;
 #else
     if (arg_getType(eventData) == ARG_TYPE_OBJECT_NEW) {
@@ -262,14 +251,8 @@ PIKA_RES __eventListener_pushEvent(PikaEventListener* lisener,
         arg_deinit(eventData);
         return PIKA_RES_ERR_SIGNAL_EVENT_FULL;
     }
-    if (g_PikaVMState.cq.res[g_PikaVMState.cq.tail] != NULL) {
-        arg_deinit(g_PikaVMState.cq.res[g_PikaVMState.cq.tail]);
-        g_PikaVMState.cq.res[g_PikaVMState.cq.tail] = NULL;
-    }
-    if (g_PikaVMState.cq.data[g_PikaVMState.cq.tail].arg != NULL) {
-        arg_deinit(g_PikaVMState.cq.data[g_PikaVMState.cq.tail].arg);
-        g_PikaVMState.cq.data[g_PikaVMState.cq.tail].arg = NULL;
-    }
+    poiner_set_NULL((void**)&g_PikaVMState.cq.res[g_PikaVMState.cq.tail]);
+    poiner_set_NULL((void**)&g_PikaVMState.cq.data[g_PikaVMState.cq.tail].arg);
     g_PikaVMState.cq.id[g_PikaVMState.cq.tail] = eventId;
     g_PikaVMState.cq.data[g_PikaVMState.cq.tail].arg = eventData;
     g_PikaVMState.cq.listener[g_PikaVMState.cq.tail] = lisener;
@@ -282,8 +265,7 @@ PIKA_RES __eventListener_pushSignal(PikaEventListener* lisener,
                                     uintptr_t eventId,
                                     int signal) {
 #if !PIKA_EVENT_ENABLE
-    pika_platform_printf("PIKA_EVENT_ENABLE is not enable");
-    pika_platform_panic_handle();
+    pika_event_not_enable();
     return PIKA_RES_ERR_OPERATION_FAILED;
 #else
     /* push to event_cq_buff */
@@ -297,10 +279,7 @@ PIKA_RES __eventListener_pushSignal(PikaEventListener* lisener,
     g_PikaVMState.sq.tail = (g_PikaVMState.sq.tail + 1) % PIKA_EVENT_LIST_SIZE;
     if (_VM_is_first_lock()) {
         pika_GIL_ENTER();
-        if (g_PikaVMState.sq.res[g_PikaVMState.sq.tail] != NULL) {
-            arg_deinit(g_PikaVMState.sq.res[g_PikaVMState.sq.tail]);
-            g_PikaVMState.sq.res[g_PikaVMState.sq.tail] = NULL;
-        }
+        poiner_set_NULL((void**)&g_PikaVMState.sq.res[g_PikaVMState.sq.tail]);
         pika_GIL_EXIT();
     }
     return PIKA_RES_OK;
@@ -313,8 +292,7 @@ PIKA_RES __eventListener_popEvent(PikaEventListener** lisener_p,
                                   int* signal,
                                   int* head) {
 #if !PIKA_EVENT_ENABLE
-    pika_platform_printf("PIKA_EVENT_ENABLE is not enable");
-    pika_platform_panic_handle();
+    pika_event_not_enable();
     return PIKA_RES_ERR_OPERATION_FAILED;
 #else
     PikaEventQueue* cq = NULL;
@@ -346,8 +324,7 @@ PIKA_RES __eventListener_popSignalEvent(PikaEventListener** lisener_p,
                                         int* signal,
                                         int* head) {
 #if !PIKA_EVENT_ENABLE
-    pika_platform_printf("PIKA_EVENT_ENABLE is not enable");
-    pika_platform_panic_handle();
+    pika_event_not_enable();
     return PIKA_RES_ERR_OPERATION_FAILED;
 #else
     /* pop from event_cq_buff */
@@ -365,8 +342,7 @@ PIKA_RES __eventListener_popSignalEvent(PikaEventListener** lisener_p,
 
 void __VMEvent_pickupEvent(char* info) {
 #if !PIKA_EVENT_ENABLE
-    pika_platform_printf("PIKA_EVENT_ENABLE is not enable\r\n");
-    pika_platform_panic_handle();
+    pika_event_not_enable();
 #else
     int evt_pickup_cnt = _VMEvent_getEventPickupCnt();
     if (evt_pickup_cnt >= PIKA_EVENT_PICKUP_MAX) {
