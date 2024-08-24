@@ -1,0 +1,36 @@
+Result for test_case/operator_test/test_operator.py:
+======[pikapython packages installed]======
+pikascript-core==v1.13.3 (2024/05/25 01:26:44)
+PikaStdLib===v1.13.3
+===========================================
+~~~/ POWERED BY \~~~
+~  pikapython.com  ~
+~~~~~~~~~~~~~~~~~~~~
+(pikascript) pika compiler:
+  compiling main.py...
+  linking pikascript-api/pikaModules_cache.py.a...
+(pikascript) all succeed.
+Addition (a + b): 15
+Subtraction (a - b): 5
+Multiplication (a * b): 50
+Division (a / b): 2.000000
+Equal (a == b): False
+Greater than (a > b): 1
+Less than (a < b): False
+Greater than or equal (a >= b): True
+Less than or equal (a <= b): False
+Modulo (a % b): 0
+Exponent (a ** b): 100000
+Floor division (a // b): 2
+Not equal (a != b): True
+Bitwise AND (a & b): 0
+Bitwise right shift (a >> b): 0
+Bitwise left shift (a << b): 320
+Logical AND (a and b): True
+Logical OR (a or b): True
+Logical NOT (not a): False
+In (a in [b]): False
+Augmented Addition (a += b): 15
+Augmented Subtraction (a -= b): 10
+Augmented Multiplication (a *= b): 50
+Augmented Division (a /= b): 10.000000

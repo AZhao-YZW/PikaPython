@@ -155,11 +155,11 @@ VMParameters* pikaVM_runByteCodeFrame(PikaObj* self,
                                       ByteCodeFrame* byteCode_frame);
 
 static inline int instructUnit_getBlockDeepth(InstructUnit* self) {
-    return self->deepth & 0x0F;
+    return self->depth & 0x0F;
 }
 
 static inline int instructUnit_getInvokeDeepth(InstructUnit* self) {
-    return self->deepth >> 4;
+    return self->depth >> 4;
 }
 
 static inline enum InstructIndex instructUnit_getInstructIndex(
@@ -176,7 +176,7 @@ static inline int instructUnit_getIsNewLine(InstructUnit* self) {
 }
 
 static inline void instructUnit_setBlockDeepth(InstructUnit* self, int val) {
-    self->deepth |= (0x0F & val);
+    self->depth |= (0x0F & val);
 }
 
 static inline void instructUnit_setConstPoolIndex(InstructUnit* self, int val) {
@@ -184,7 +184,7 @@ static inline void instructUnit_setConstPoolIndex(InstructUnit* self, int val) {
 }
 
 static inline void instructUnit_setInvokeDeepth(InstructUnit* self, int val) {
-    self->deepth |= ((0x0F & val) << 4);
+    self->depth |= ((0x0F & val) << 4);
 }
 
 static inline void instructUnit_setInstruct(InstructUnit* self, int val) {

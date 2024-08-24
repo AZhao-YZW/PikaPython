@@ -1,0 +1,28 @@
+Result for test_case/excection_test/test_exception.py:
+======[pikapython packages installed]======
+pikascript-core==v1.13.3 (2024/05/25 01:26:44)
+PikaStdLib===v1.13.3
+time===v0.2.2
+===========================================
+~~~/ POWERED BY \~~~
+~  pikapython.com  ~
+~~~~~~~~~~~~~~~~~~~~
+hello pikascript
+>>> def divide(a, b):
+...     try:
+...         return a / b
+...     except:
+...         print("caught an exception")
+...         raise
+... 
+>>> def exception_test(a, b):
+...     try:
+...         result = divide(a, b)
+...         print(a, "/", b, "=", result)
+...     except:
+...         print("raise sueecss")
+... 
+>>> exception_test(10, 2)
+10 / 2 = 5.000000
+>>> exception_test(100, 0)
+Error: line buff overflow, please use bigger 'PIKA_LINE_BUFF_SIZE'

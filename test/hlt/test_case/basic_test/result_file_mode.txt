@@ -1,0 +1,24 @@
+Result for test_case/basic_test/testcase.py:
+======[pikapython packages installed]======
+pikascript-core==v1.13.3 (2024/05/25 01:26:44)
+PikaStdLib===v1.13.3
+===========================================
+~~~/ POWERED BY \~~~
+~  pikapython.com  ~
+~~~~~~~~~~~~~~~~~~~~
+(pikascript) pika compiler:
+  compiling main.py...
+  linking pikascript-api/pikaModules_cache.py.a...
+(pikascript) all succeed.
+======= Test Start =======
+0
+1
+2
+3
+4
+5
+6
+7
+8
+9
+======= Test End =======

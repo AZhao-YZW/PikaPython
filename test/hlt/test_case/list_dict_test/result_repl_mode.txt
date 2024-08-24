@@ -1,0 +1,37 @@
+Result for test_case/list_dict_test/test_list_dict.py:
+======[pikapython packages installed]======
+pikascript-core==v1.13.3 (2024/05/25 01:26:44)
+PikaStdLib===v1.13.3
+time===v0.2.2
+===========================================
+~~~/ POWERED BY \~~~
+~  pikapython.com  ~
+~~~~~~~~~~~~~~~~~~~~
+hello pikascript
+>>> def test_list_dict():
+...     l1 = list()
+...     print("list l1:", l1) 
+... 
+>>>     l2 = ['a', 'b', 'c']
+>>>     print("List l2:", l2) 
+List l2: ['a', 'b', 'c']
+>>> 
+>>>     d1 = dict()
+>>>     print("dict d1:", d1)
+dict d1: {}
+>>> 
+>>>     d2 =  {'a':x, 'b':y, 'c':z}
+NameError: name 'x' is not defined
+   STR a 		(#1)
+ -> REF x 		(#3)
+>>>     print("dict d2:", d2)
+NameError: name 'd2' is not defined
+   STR dict d2: 		(#1)
+ -> REF d2 		(#10)
+>>> 
+>>> x, y, z = 10, 20, 30
+>>> test_list_dict()
+list l1: []
+>>> 
+>>> 
+Error: line buff overflow, please use bigger 'PIKA_LINE_BUFF_SIZE'

@@ -30,11 +30,11 @@ extern "C" {
 
 #ifndef __PIKA_PARSER__H
 #define __PIKA_PARSER__H
+
+#include "parser.h"
 #include "PikaVM.h"
 #include "dataQueueObj.h"
 #include "dataStack.h"
-
-typedef QueueObj AST;
 
 typedef enum TokenType {
     TOKEN_strEnd = 0,
@@ -83,29 +83,9 @@ typedef struct GenRule {
     char* val;
 } GenRule;
 
-typedef struct BlockState {
-    Stack* stack;
-    int deepth;
-} BlockState;
-
-typedef struct Parser Parser;
-typedef char* (*fn_parser_Ast2Target)(Parser* self, AST* ast);
 typedef char* (*fn_parser_Lines2Target)(Parser* self, char* sPyLines);
 
-#define _VAL_NEED_INIT -1
 #define PIKA_BLOCK_SPACE 4
-
-struct Parser {
-    Args lineBuffs;
-    Args genBuffs;
-    BlockState blockState;
-    int blockDeepthOrigin;
-    fn_parser_Ast2Target fn_ast2Target;
-    pika_bool isGenBytecode;
-    ByteCodeFrame* bytecode_frame;
-    uint8_t thisBlockDeepth;
-    uint32_t label_pc;
-};
 
 typedef struct LexToken LexToken;
 struct LexToken {
@@ -128,14 +108,13 @@ struct Cursor {
     PIKA_RES result;
 };
 
-char* Lexer_getTokenStream(Args* outBuffs, char* stmt);
 char* Lexer_printTokenStream(Args* outBuffs, char* tokenStream);
 
 char* pika_file2Asm(Args* outBuffs, char* filename);
 char* pika_lines2Asm(Args* outBuffs, char* multiLine);
 char* pika_lines2Array(char* lines);
 char* pika_line2Asm(Args* buffs_p, char* line, Stack* blockStack);
-AST* parser_line2Ast(Parser* self, char* line);
+AST* parser_line_to_ast(Parser* self, char* line);
 char* parser_file2Doc(Parser* self, char* sPyFile);
 int parser_file2DocFile(Parser* self, char* sPyFile, char* sDocFile);
 char* parser_ast2Asm(Parser* self, AST* ast);
@@ -146,7 +125,6 @@ AST* line2Ast(char* line);
 PIKA_RES pika_lines2Bytes(ByteCodeFrame* bf, char* py_lines);
 char* parser_line2Target(Parser* self, char* line);
 
-Parser* parser_create(void);
 int parser_deinit(Parser* parser);
 
 char* Cursor_popLastToken(Args* outBuffs, char** pStmt, char* str);

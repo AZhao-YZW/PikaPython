@@ -1,0 +1,25 @@
+Result for test_case/operator_test/test_operator.py:
+Addition (a + b): 15
+Subtraction (a - b): 5
+Multiplication (a * b): 50
+Division (a / b): 2.0
+Equal (a == b): False
+Greater than (a > b): True
+Less than (a < b): False
+Greater than or equal (a >= b): True
+Less than or equal (a <= b): False
+Modulo (a % b): 0
+Exponent (a ** b): 100000
+Floor division (a // b): 2
+Not equal (a != b): True
+Bitwise AND (a & b): 0
+Bitwise right shift (a >> b): 0
+Bitwise left shift (a << b): 320
+Logical AND (a and b): 5
+Logical OR (a or b): 10
+Logical NOT (not a): False
+In (a in [b]): False
+Augmented Addition (a += b): 15
+Augmented Subtraction (a -= b): 10
+Augmented Multiplication (a *= b): 50
+Augmented Division (a /= b): 10.0

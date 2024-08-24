@@ -42,7 +42,7 @@ extern "C" {
 
 typedef struct InstructUnit InstructUnit;
 struct InstructUnit {
-    uint8_t deepth;
+    uint8_t depth;
     uint8_t isNewLine_instruct;
     uint16_t const_pool_index;
 };

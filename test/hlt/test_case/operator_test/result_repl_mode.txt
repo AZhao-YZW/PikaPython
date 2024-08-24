@@ -1,0 +1,69 @@
+Result for test_case/operator_test/test_operator.py:
+======[pikapython packages installed]======
+pikascript-core==v1.13.3 (2024/05/25 01:26:44)
+PikaStdLib===v1.13.3
+time===v0.2.2
+===========================================
+~~~/ POWERED BY \~~~
+~  pikapython.com  ~
+~~~~~~~~~~~~~~~~~~~~
+hello pikascript
+>>> def test_operators(a, b):
+...     print("Addition (a + b):", a + b)
+...     print("Subtraction (a - b):", a - b)
+...     print("Multiplication (a * b):", a * b)
+...     print("Division (a / b):", a / b)
+...     print("Equal (a == b):", a == b)
+...     print("Greater than (a > b):", a > b)
+...     print("Less than (a < b):", a < b)
+...     print("Greater than or equal (a >= b):", a >= b)
+...     print("Less than or equal (a <= b):", a <= b)
+...     print("Modulo (a % b):", a % b)
+...     print("Exponent (a ** b):", a ** b)
+...     print("Floor division (a // b):", a // b)
+...     print("Not equal (a != b):", a != b)
+...     print("Bitwise AND (a & b):", a & b)
+...     print("Bitwise right shift (a >> b):", a >> b)
+...     print("Bitwise left shift (a << b):", a << b)
+...     print("Logical AND (a and b):", a and b)
+...     print("Logical OR (a or b):", a or b)
+...     print("Logical NOT (not a):", not a)
+...     print("In (a in [b]):", a in [b])
+...     a += b
+...     print("Augmented Addition (a += b):", a)
+...     a -= b
+...     print("Augmented Subtraction (a -= b):", a)
+...     a *= b
+...     print("Augmented Multiplication (a *= b):", a)
+...     a /= b
+...     print("Augmented Division (a /= b):", a)
+... 
+>>> a = 10
+>>> b = 5
+>>> test_operators(a, b)
+Addition (a + b): 15
+Subtraction (a - b): 5
+Multiplication (a * b): 50
+Division (a / b): 2.000000
+Equal (a == b): False
+Greater than (a > b): 1
+Less than (a < b): False
+Greater than or equal (a >= b): True
+Less than or equal (a <= b): False
+Modulo (a % b): 0
+Exponent (a ** b): 100000
+Floor division (a // b): 2
+Not equal (a != b): True
+Bitwise AND (a & b): 0
+Bitwise right shift (a >> b): 0
+Bitwise left shift (a << b): 320
+Logical AND (a and b): True
+Logical OR (a or b): True
+Logical NOT (not a): False
+In (a in [b]): False
+Augmented Addition (a += b): 15
+Augmented Subtraction (a -= b): 10
+Augmented Multiplication (a *= b): 50
+Augmented Division (a /= b): 10.000000
+>>> 
+Error: line buff overflow, please use bigger 'PIKA_LINE_BUFF_SIZE'

@@ -2,7 +2,9 @@ name: CI——Benchmark
 
 on:
   push:
-    branches: [ master ]
+    branches: [ base ]
+  pull_request:
+    branches: [ base ]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)

@@ -1,0 +1,24 @@
+Result for test_case/object_test/test_object.py:
+======[pikapython packages installed]======
+pikascript-core==v1.13.3 (2024/05/25 01:26:44)
+PikaStdLib===v1.13.3
+===========================================
+~~~/ POWERED BY \~~~
+~  pikapython.com  ~
+~~~~~~~~~~~~~~~~~~~~
+(pikascript) pika compiler:
+  compiling main.py...
+  linking pikascript-api/pikaModules_cache.py.a...
+(pikascript) all succeed.
+=====Test Start=====
+Buddy barks
+Hello Hi!
+Hello Alice!
+Hello Bob!
+Whiskers makes a sound
+Buddy barks
+Owner is Alice
+Count is 0
+Count is 1
+Count is 2
+=====Test End=====

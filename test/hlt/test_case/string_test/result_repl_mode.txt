@@ -1,0 +1,23 @@
+Result for test_case/string_test/test_string.py:
+======[pikapython packages installed]======
+pikascript-core==v1.13.3 (2024/05/25 01:26:44)
+PikaStdLib===v1.13.3
+time===v0.2.2
+===========================================
+~~~/ POWERED BY \~~~
+~  pikapython.com  ~
+~~~~~~~~~~~~~~~~~~~~
+hello pikascript
+>>> print('======= Test Start =======')
+======= Test Start =======
+>>> 
+>>> str_test = "tests passed!"
+>>> print('%%-formatting %s' %(str_test))
+>>> print('str.format() {}'.format(str_test))
+None
+>>> print(f'f-strings (formatted string literals) {str_test}')
+NameError: name 'f'f-strings (formatted string literals) {str_test}'' is not defined
+ -> REF f'f-strings (formatted string literals) {str_test}' 		(#1)
+>>> 
+>>> print('======= Test End =======')
+Error: line buff overflow, please use bigger 'PIKA_LINE_BUFF_SIZE'

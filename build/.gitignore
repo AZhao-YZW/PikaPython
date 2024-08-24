@@ -1,0 +1,6 @@
+leafpython
+*.o
+*.a
+
+output/
+pikascript-api/

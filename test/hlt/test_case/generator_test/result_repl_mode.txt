@@ -1,0 +1,94 @@
+Result for test_case/generator_test/test_generator.py:
+======[pikapython packages installed]======
+pikascript-core==v1.13.3 (2024/05/25 01:26:44)
+PikaStdLib===v1.13.3
+time===v0.2.2
+===========================================
+~~~/ POWERED BY \~~~
+~  pikapython.com  ~
+~~~~~~~~~~~~~~~~~~~~
+hello pikascript
+>>> # generator functions test
+>>> print('===== generator functions test =====')
+===== generator functions test =====
+>>> def num_gen_func():
+...     for i in range(5):
+...         yield i
+... 
+>>> func_1 = num_gen_func()
+NameError: name 'yieldi' is not defined
+ -> REF yieldi 		(#52)
+ -> RUN num_gen_func 		(#1)
+>>> func_2 = num_gen_func()
+NameError: name 'yieldi' is not defined
+ -> REF yieldi 		(#52)
+ -> RUN num_gen_func 		(#1)
+>>> print('func_1: ' + str(next(func_1)))
+NameError: name 'func_1' is not defined
+   STR func_1:  		(#1)
+ -> REF func_1 		(#10)
+>>> print('func_2: ' + str(next(func_2)))
+NameError: name 'func_2' is not defined
+   STR func_2:  		(#1)
+ -> REF func_2 		(#10)
+>>> print('func_1: ' + str(next(func_1)))
+NameError: name 'func_1' is not defined
+   STR func_1:  		(#1)
+ -> REF func_1 		(#10)
+>>> print('func_2: ' + str(next(func_2)))
+NameError: name 'func_2' is not defined
+   STR func_2:  		(#1)
+ -> REF func_2 		(#10)
+>>> print('func_1: ' + str(next(func_1)))
+NameError: name 'func_1' is not defined
+   STR func_1:  		(#1)
+ -> REF func_1 		(#10)
+>>> print('func_2: ' + str(next(func_2)))
+NameError: name 'func_2' is not defined
+   STR func_2:  		(#1)
+ -> REF func_2 		(#10)
+>>> print('func_1: ' + str(next(func_1)))
+NameError: name 'func_1' is not defined
+   STR func_1:  		(#1)
+ -> REF func_1 		(#10)
+>>> print('func_2: ' + str(next(func_2)))
+NameError: name 'func_2' is not defined
+   STR func_2:  		(#1)
+ -> REF func_2 		(#10)
+>>> print('func_1: ' + str(next(func_1)))
+NameError: name 'func_1' is not defined
+   STR func_1:  		(#1)
+ -> REF func_1 		(#10)
+>>> print('func_2: ' + str(next(func_2)))
+NameError: name 'func_2' is not defined
+   STR func_2:  		(#1)
+ -> REF func_2 		(#10)
+>>> 
+>>> # generator expressions test
+>>> print('===== generator expressions test =====')
+===== generator expressions test =====
+>>> num_gen_express = (i for i in range(5))
+NameError: name 'i for i' is not defined
+ -> REF i for i 		(#1)
+>>> print('num_gen_express: ' + str(next(num_gen_express)))
+NameError: name 'num_gen_express' is not defined
+   STR num_gen_express:  		(#1)
+ -> REF num_gen_express 		(#19)
+>>> print('num_gen_express: ' + str(next(num_gen_express)))
+NameError: name 'num_gen_express' is not defined
+   STR num_gen_express:  		(#1)
+ -> REF num_gen_express 		(#19)
+>>> print('num_gen_express: ' + str(next(num_gen_express)))
+NameError: name 'num_gen_express' is not defined
+   STR num_gen_express:  		(#1)
+ -> REF num_gen_express 		(#19)
+>>> print('num_gen_express: ' + str(next(num_gen_express)))
+NameError: name 'num_gen_express' is not defined
+   STR num_gen_express:  		(#1)
+ -> REF num_gen_express 		(#19)
+>>> print('num_gen_express: ' + str(next(num_gen_express)))
+NameError: name 'num_gen_express' is not defined
+   STR num_gen_express:  		(#1)
+ -> REF num_gen_express 		(#19)
+>>> 
+Error: line buff overflow, please use bigger 'PIKA_LINE_BUFF_SIZE'
