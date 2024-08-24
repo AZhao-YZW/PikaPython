@@ -22,5 +22,5 @@ hello pikascript
 ...         print('InnerContext.do_something')
 ... 
 Assertion "NULL != self" failed, in function: arg_getContent(). 
-  (at /home/azhao/LeafScript/PikaPython/src/dataArg.h:292)
+  (at /home/src/dataArg.h:292)
 Aborted

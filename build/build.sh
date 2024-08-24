@@ -31,12 +31,20 @@ fi
 #----------------- PRE COMPILE -----------------#
 if [ "$3" = "PRECPL" ]; then
     cd ./linux/pikapython/
-    if [ `command -v wine` ]; then
-        echo "===== use WINE pre-compiler ====="
-        wine ./rust-msc-latest-win10.exe
+    echo "===== start pre-compile ====="
+    ./rust-msc-latest-win10.exe >/dev/null 2>&1
+    if [ $? = 0 ]; then
+        echo "===== pre-compile SUCCESS, use WIN pre-compiler ====="
     else
-        echo "===== use LINUX pre-compiler ====="
-        ./rust-msc-latest-linux
+        ./rust-msc-latest-linux >/dev/null 2>&1
+        if [ $? = 0 ]; then
+            echo "===== pre-compile SUCCESS, use LINUX pre-compiler ====="
+        elif [ `command -v wine` ]; then
+            wine ./rust-msc-latest-win10.exe
+            echo "===== pre-compile SUCCESS, use WINE pre-compiler ====="
+        else
+            echo "===== pre-compile FAILED ====="
+        fi
     fi
     wait
     cd -
