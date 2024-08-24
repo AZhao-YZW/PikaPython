@@ -22,8 +22,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 #include "parser.h"
-#include "PikaParser.h"
+#include "pika_config_valid.h"
 #include "dataString.h"
+#include "ast.h"
 
 char* parser_remove_comment(char* line)
 {
@@ -79,12 +80,12 @@ char* parser_remove_comment(char* line)
     return line;
 }
 
-extern char* parser_ast2Asm(Parser* self, AST_S* ast);
+extern char* parser_ast2Asm(Parser* self, AST* ast);
 
-Parser_S* parser_create(void)
+Parser* parser_create(void)
 {
-    Parser_S* self = (Parser_S*)pikaMalloc(sizeof(Parser_S));
-    pika_platform_memset(self, 0, sizeof(Parser_S));
+    Parser* self = (Parser*)pikaMalloc(sizeof(Parser));
+    pika_platform_memset(self, 0, sizeof(Parser));
     self->blk_state.stack = pikaMalloc(sizeof(Stack));
     /* generate asm as default */
     self->ast_to_target = parser_ast2Asm;
