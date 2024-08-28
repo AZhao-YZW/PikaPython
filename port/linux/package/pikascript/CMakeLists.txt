@@ -6,9 +6,10 @@ add_definitions(-D"bool=uint8_t" -D"true=1" -D"false=0")
 set(CORE_DIR ${CMAKE_SOURCE_DIR}/package/pikascript/pikascript-core)
 set(PARSER_DIR ${CORE_DIR}/parser)
 set(OBJECT_DIR ${CORE_DIR}/object)
+set(VM_DIR ${CORE_DIR}/vm)
 set(PIKA_LIB_DIR ${CMAKE_SOURCE_DIR}/package/pikascript/pikascript-lib)
 set(PIKA_API_DIR ${CMAKE_SOURCE_DIR}/package/pikascript/pikascript-api)
-set(PIKA_DIR ${PARSER_DIR} ${CORE_DIR} ${OBJECT_DIR}
+set(PIKA_DIR ${PARSER_DIR} ${OBJECT_DIR} ${VM_DIR} ${CORE_DIR}
              ${PIKA_LIB_DIR} ${PIKA_API_DIR})
 
 include_directories(${PIKA_DIR})

@@ -31,10 +31,14 @@ extern "C" {
 #ifndef __PIKA_PARSER__H
 #define __PIKA_PARSER__H
 
-#include "parser.h"
 #include "PikaVM.h"
 #include "dataQueueObj.h"
 #include "dataStack.h"
+
+// ===== parser.h start =====
+typedef struct Parser Parser;
+typedef PikaObj AST;
+// ===== parser.h  end  =====
 
 typedef enum TokenType {
     TOKEN_strEnd = 0,
