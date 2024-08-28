@@ -1,0 +1,58 @@
+Result for test_case/keyword_test/test_keyword.py:
+===== start keyword test =====
+while test: able to reach
+while test: able to reach
+while test: able to reach
+if test: able to reach
+if test: able to reach
+if test: able to reach
+elif test: able to reach
+elif test: able to reach
+elif test: able to reach
+else test: able to reach
+else test: able to reach
+else test: able to reach
+break test: only execute once
+break test: only execute once
+continue test: execute twice
+continue test: execute twice
+continue test: execute twice
+continue test: execute twice
+return test: able to reach
+return test: able to reach
+for test: execute twice
+for test: execute twice
+for test: execute twice
+for test: execute twice
+1
+2
+3
+global test: tmp is unable to reach
+2
+global test: foo is able to reach
+3
+global test: bar is able to reach
+del test: del_test_var1 is delete
+del test: del_test_var2 is delete
+del test: del_test_var3 is delete
+del test: del_test_var4 is delete
+def test: def_test_func1 defined ok
+def_test_func1
+def test: def_test_func2 defined ok
+def_test_func2
+class test: class_test_func1 defined ok
+class_test_func1
+class test: class_test_func2 defined ok
+class_test_func2
+class test: class_test_func3 defined ok
+class_test_func3
+class test: class_test_func4 defined ok
+class_test_func4
+try except test: able to reach
+try except test: able to reach
+try except test: able to reach
+try except test: able to reach
+raise test: able to reach
+raise test: able to reach
+assert test: able to reach
+assert test: able to reach
