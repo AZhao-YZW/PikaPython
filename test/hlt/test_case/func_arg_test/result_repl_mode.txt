@@ -42,10 +42,9 @@ b: 2
 **kwargs: {'177693': 7, '177694': 8}
 >>> print("\nFunction arguments test with keyword arguments:")
 Function arguments test with keyword arguments:
->>> test_function_arguments(a=1)
-a: 1
-b: 2
-*args: ()
-Assertion "self != 0" failed, in function: arg_getType(). 
-  (at /home/build/linux/../../src/dataArg.h:140)
-Aborted
+>>> # below codes will failed while compiling:
+... # test_function_arguments(a=1)
+>>> # test_function_arguments(a=1, b=3)
+>>> # test_function_arguments(a=1, b=3, x=7, y=8)
+>>> print('======= Test End =======')
+Error: line buff overflow, please use bigger 'PIKA_LINE_BUFF_SIZE'

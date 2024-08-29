@@ -8,18 +8,6 @@ PikaStdLib===v1.13.3
 ~~~~~~~~~~~~~~~~~~~~
 (pikascript) pika compiler:
   compiling main.py...
-----------[22]----------
-with ContextManager(True) as ctx:
--------------------------
-    Error: Syntax error.
-  Error: compile failed, link aborted.
+  linking pikascript-api/pikaModules_cache.py.a...
 (pikascript) all succeed.
-str1: P
-str2: PikaPython
-str3: PikaPython!
-byte1: P
-byte2: PikaPython
-byte3: PikaPython!
-list1: 4
-list2: [3, 4, 5]
-list3: [5, 6, 7]
+===== custom context managers test =====

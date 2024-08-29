@@ -30,9 +30,4 @@ b: 2
 *args: (3, 4, 5, 6)
 **kwargs: {'177693': 7, '177694': 8}
 Function arguments test with keyword arguments:
-a: 1
-b: 2
-*args: ()
-Assertion "self != 0" failed, in function: arg_getType(). 
-  (at /home/build/linux/../../src/dataArg.h:140)
-Aborted
+======= Test End =======

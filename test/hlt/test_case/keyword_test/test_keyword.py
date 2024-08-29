@@ -174,7 +174,7 @@ except:
 try:
     def def_test_func1():
         print('def_test_func1')
-
+    
     print('def test: def_test_func1 defined ok')
     def_test_func1()
 except:
@@ -183,30 +183,28 @@ except:
 try:
     def def_test_func2  (  )  :  # spaces
         print('def_test_func2')
-
+    
     print('def test: def_test_func2 defined ok')
     def_test_func2()
 except:
     print('def test: def_test_func2 defined failed')
 
-'''
-below codes will failed while compiling:
-try:
-    def def_test_func3:
-        print('def_test_func1')
+# below codes will failed while compiling:
+# try:
+#     def def_test_func3:
+#         print('def_test_func1')
 
-    print('def test: def_test_func3 defined ok')
-    def_test_func3()
-except:
-    print('def test: def_test_func3 defined failed')
-'''
+#     print('def test: def_test_func3 defined ok')
+#     def_test_func3()
+# except:
+#     print('def test: def_test_func3 defined failed')
 
 # "class "
 try:
     class class_test_func1():
         def __init__(self) -> None:
             print('class_test_func1')
-
+    
     print('class test: class_test_func1 defined ok')
     class_test_func1()
 except:
@@ -216,7 +214,7 @@ try:
     class class_test_func2  (  )  :  # spaces
         def __init__(self) -> None:
             print('class_test_func2')
-
+    
     print('class test: class_test_func2 defined ok')
     class_test_func2()
 except:
@@ -226,7 +224,7 @@ try:
     class class_test_func3:
         def __init__(self) -> None:
             print('class_test_func3')
-
+    
     print('class test: class_test_func3 defined ok')
     class_test_func3()
 except:
@@ -236,7 +234,7 @@ try:
     class   class_test_func4  :  # spaces
         def __init__(self) -> None:
             print('class_test_func4')
-
+    
     print('class test: class_test_func4 defined ok')
     class_test_func4()
 except:

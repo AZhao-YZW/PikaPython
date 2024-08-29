@@ -1,20 +1,2 @@
 Result for test_case/ctx_mng_test/test_ctx_mng.py:
 ===== custom context managers test =====
-ContextManager.__init__(True)
-ContextManager.__enter__
-InnerContext.__init__
-InnerContext.do_something
-ContextManager.__exit__(<class 'RuntimeError'>, error message handled)
-ContextManager.__init__(False)
-ContextManager.__enter__
-InnerContext.__init__
-InnerContext.__del__
- 
-InnerContext.do_something
-ContextManager.__exit__(<class 'RuntimeError'>, error message propagated)
-Traceback (most recent call last):
-  File "/home/azhao/LeafScript/PikaPython/test/hlt/test_case/ctx_mng_test/test_ctx_mng.py", line 36, in <module>
-    raise RuntimeError('error message propagated')
-RuntimeError: error message propagated
-InnerContext.__del__
- 
