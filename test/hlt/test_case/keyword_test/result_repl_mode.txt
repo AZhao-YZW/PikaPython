@@ -224,51 +224,153 @@ del test: del_test_var4 is delete
 >>> try:
 ...     def def_test_func1():
 ...         print('def_test_func1')
-... 
->>>     print('def test: def_test_func1 defined ok')
+...     
+...     print('def test: def_test_func1 defined ok')
+...     def_test_func1()
+... except:
 def test: def_test_func1 defined ok
->>>     def_test_func1()
 def_test_func1
->>> except:
-...     print('def test: def_test_func1 defined failed')
-... 
+>>>     print('def test: def_test_func1 defined failed')
 def test: def_test_func1 defined failed
+>>> 
 >>> try:
 ...     def def_test_func2  (  )  :  # spaces
 ...         print('def_test_func2')
-... 
->>>     print('def test: def_test_func2 defined ok')
+...     
+...     print('def test: def_test_func2 defined ok')
+...     def_test_func2()
+... except:
 def test: def_test_func2 defined ok
->>>     def_test_func2()
 def_test_func2
->>> except:
-...     print('def test: def_test_func2 defined failed')
-... 
+>>>     print('def test: def_test_func2 defined failed')
 def test: def_test_func2 defined failed
->>> '''
->>> below codes will failed while compiling:
-... try:
->>>     def def_test_func3:
-...         print('def_test_func1')
-... 
-----------[1]----------
-    def def_test_func3:
--------------------------
-[31mSyntaxError: invalid syntax[0m
->>>     print('def test: def_test_func3 defined ok')
-def test: def_test_func3 defined ok
->>>     def_test_func3()
-NameError: name 'def_test_func3' is not defined
- -> RUN def_test_func3 		(#1)
->>> except:
-...     print('def test: def_test_func3 defined failed')
-... '''
-def test: def_test_func3 defined failed
+>>> 
+>>> # below codes will failed while compiling:
+... # try:
+>>> #     def def_test_func3:
+... #         print('def_test_func1')
+>>> 
+>>> #     print('def test: def_test_func3 defined ok')
+>>> #     def_test_func3()
+>>> # except:
+... #     print('def test: def_test_func3 defined failed')
 >>> 
 >>> # "class "
 >>> try:
 ...     class class_test_func1():
 ...         def __init__(self) -> None:
 ...             print('class_test_func1')
+...     
+...     print('class test: class_test_func1 defined ok')
+...     class_test_func1()
+... except:
+class test: class_test_func1 defined ok
+class_test_func1
+<object at 0x6147b531b500>
+>>>     print('class test: class_test_func1 defined failed')
+class test: class_test_func1 defined failed
+>>> 
+>>> try:
+...     class class_test_func2  (  )  :  # spaces
+...         def __init__(self) -> None:
+...             print('class_test_func2')
+...     
+...     print('class test: class_test_func2 defined ok')
+...     class_test_func2()
+... except:
+class test: class_test_func2 defined ok
+class_test_func2
+<object at 0x6147b531b500>
+>>>     print('class test: class_test_func2 defined failed')
+class test: class_test_func2 defined failed
+>>> 
+>>> try:
+...     class class_test_func3:
+...         def __init__(self) -> None:
+...             print('class_test_func3')
+...     
+...     print('class test: class_test_func3 defined ok')
+...     class_test_func3()
+... except:
+class test: class_test_func3 defined ok
+class_test_func3
+<object at 0x6147b531b500>
+>>>     print('class test: class_test_func3 defined failed')
+class test: class_test_func3 defined failed
+>>> 
+>>> try:
+...     class   class_test_func4  :  # spaces
+...         def __init__(self) -> None:
+...             print('class_test_func4')
+...     
+...     print('class test: class_test_func4 defined ok')
+...     class_test_func4()
+... except:
+class test: class_test_func4 defined ok
+class_test_func4
+<object at 0x6147b531b500>
+>>>     print('class test: class_test_func4 defined failed')
+class test: class_test_func4 defined failed
+>>> 
+>>> # "try" "except"
+>>> try:
+...     print('try except test: able to reach')
+... except:
+try except test: able to reach
+>>>     print('try except test: unable to reach')
+try except test: unable to reach
+>>> 
+>>> try:
+...     raise
+...     print('try except test: unable to reach')
+... except:
+>>>     print('try except test: able to reach')
+try except test: able to reach
+>>> 
+>>> try  :  # spaces
+>>>     print('try except test: able to reach')
+try except test: able to reach
+>>> except:
+...     print('try except test: unable to reach')
 ... 
-Segmentation fault
+try except test: unable to reach
+>>> try:
+...     raise
+...     print('try except test: unable to reach')
+... except  :  # spaces
+>>>     print('try except test: able to reach')
+try except test: able to reach
+>>> 
+>>> # "raise"
+>>> try:
+...     raise
+...     print('raise test: unable to reach')
+... except:
+>>>     print('raise test: able to reach')
+raise test: able to reach
+>>> 
+>>> try:
+...     raise RuntimeError("Raise Test Error")      # unsupport now
+...     print('raise test: unable to reach')
+... except:
+'Raise Test Error'
+raise test: unable to reach
+>>>     print('raise test: able to reach')
+raise test: able to reach
+>>> 
+>>> # "assert "
+>>> try:
+...     assert 1 == 1, 'Assert Test Error'
+...     print('assert test: able to reach')
+... except:
+assert test: able to reach
+>>>     print('assert test: unable to reach')
+assert test: unable to reach
+>>> 
+>>> try:
+...     assert 1 == 0, 'Assert Test Error'
+...     print('assert test: unable to reach')
+... except:
+AssertionError: Assert Test Error
+>>>     print('assert test: able to reach')
+Error: line buff overflow, please use bigger 'PIKA_LINE_BUFF_SIZE'
