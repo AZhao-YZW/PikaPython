@@ -1,6 +1,6 @@
 #-------------------- HELP ---------------------#
 if [ "$1" = "-h" ]; then
-    echo 'FORMAT: sh run_test.sh [REPL|FILE|ALL] [CPYTHON]'
+    echo 'FORMAT: sh run_test.sh [REPL|FILE|ALL] [LEAF|PIKA|CPYTHON]'
     exit 0
 fi
 
@@ -16,31 +16,37 @@ else
     exit 0
 fi
 
-#-------------- SELECT INTERPRETER -------------#
+#----------------- SELECT CORE -----------------#
 if [ ! -n "$2" ]; then
-    interpreter="DEFAULT"
-    echo '===== use LEAF/PIKA interpreter ====='
-elif [ "$2" = "CPYTHON" ]; then
-    interpreter="$2"
-    echo "===== use $2 interpreter ====="
+    core="LEAF"
+    echo '===== default use LEAF core ====='
+elif [ "$2" = "LEAF" ] || [ "$2" = "PIKA" ] || [ "$2" = "CPYTHON" ]; then
+    core="$2"
+    echo "===== use $2 core ====="
 else
-    echo '*ERROR*: interpreter is wrong, support value [CPYTHON]'
+    echo '*ERROR*: core is wrong, support value [LEAF|PIKA]'
     exit 0
 fi
 
 #------------------ RUN TEST -------------------#
-if [ "$interpreter" = "DEFAULT" ]; then
+if [ "$core" = "LEAF" ]; then
+    output_dir=leaf
+elif [ "$core" = "PIKA" ]; then
+    output_dir=pika
+fi
+
+if [ "$core" = "LEAF" ] || [ "$core" = "PIKA" ]; then
     if [ "$mode" = "REPL" ] || [ "$mode" = "ALL" ]; then
         repl_dir=../../build/linux/repl
-        python run_repl_test.py ${repl_dir}/output/leafpython
+        python run_repl_test.py ${repl_dir}/output/$output_dir/leafpython
     fi
 
     if [ "$mode" = "FILE" ] || [ "$mode" = "ALL" ]; then
         file_dir=../../build/linux/file
         pika_dir=../../build/linux/pikapython
-        python run_file_test.py ${file_dir}/output/leafpython ${pika_dir}
+        python run_file_test.py ${file_dir}/output/$output_dir/leafpython ${pika_dir}
     fi
-elif [ "$interpreter" = "CPYTHON" ]; then
+elif [ "$core" = "CPYTHON" ]; then
     if [ "$mode" = "REPL" ] || [ "$mode" = "ALL" ]; then
         python run_cpy_repl_test.py
     fi
