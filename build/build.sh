@@ -54,19 +54,27 @@ elif [ -n "$3" ]; then
 fi
 
 #-------------------- BUILD --------------------#
+if [ "$core" = "LEAF" ]; then
+    output_dir=leaf
+elif [ "$core" = "PIKA" ]; then
+    output_dir=pika
+fi
+
 if [ "$mode" = "REPL" ] || [ "$mode" = "ALL" ]; then
-    output_dir=./linux/repl/output
-    mkdir -p $output_dir
-    cd $output_dir
-    cmake -G "Unix Makefiles" -D"MODE=REPL" -D"CORE=$core" "../.."
+    output_path=./linux/repl/output
+    mkdir -p $output_path
+    mkdir -p $output_path/$output_dir
+    cd $output_path/$output_dir
+    cmake -G "Unix Makefiles" -D"MODE=REPL" -D"CORE=$core" "../../.."
     make
-    cd ../../../
+    cd ../../../../
 fi
 
 if [ "$mode" = "FILE" ] || [ "$mode" = "ALL" ]; then
-    output_dir=./linux/file/output
-    mkdir -p $output_dir
-    cd $output_dir
-    cmake -G "Unix Makefiles" -D"MODE=FILE" -D"CORE=$core" "../.."
+    output_path=./linux/file/output
+    mkdir -p $output_path
+    mkdir -p $output_path/$output_dir
+    cd $output_path/$output_dir
+    cmake -G "Unix Makefiles" -D"MODE=FILE" -D"CORE=$core" "../../.."
     make
 fi
