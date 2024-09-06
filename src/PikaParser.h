@@ -49,22 +49,22 @@ typedef enum TokenType {
     TOKEN_literal,
 } TokenType;
 
-enum StmtType {
-    STMT_reference,
-    STMT_tuple,
-    STMT_string,
-    STMT_bytes,
-    STMT_number,
-    STMT_method,
-    STMT_chain,
-    STMT_operator,
-    STMT_inhert,
-    STMT_import,
-    STMT_list,
-    STMT_slice,
-    STMT_dict,
-    STMT_none,
-};
+typedef enum StmtType {
+    STMT_REFERENCE,
+    STMT_TUPLE,
+    STMT_STRING,
+    STMT_BYTES,
+    STMT_NUMBER,
+    STMT_METHOD,
+    STMT_CHAIN,
+    STMT_OPERATOR,
+    STMT_INHERIT,
+    STMT_IMPORT,
+    STMT_LIST,
+    STMT_SLICE,
+    STMT_DICT,
+    STMT_NONE
+} StmtType;
 
 typedef struct Asmer Asmer;
 struct Asmer {
@@ -133,16 +133,17 @@ int parser_deinit(Parser* parser);
 
 char* Cursor_popLastToken(Args* outBuffs, char** pStmt, char* str);
 char* Cursor_getCleanStmt(Args* outBuffs, char* cmd);
+void _Cursor_init(struct Cursor* cs);
+void _Cursor_parse(struct Cursor* cs, char* stmt);
+void _Cursor_beforeIter(struct Cursor* cs);
 uint8_t Cursor_count(char* stmt, TokenType type, char* pyload);
 uint8_t _Cursor_count(char* stmt,
                       TokenType type,
                       char* pyload,
                       pika_bool bSkipbracket);
 
-AST* AST_parseStmt(AST* ast, char* stmt);
-AST* AST_create(void);
 char* AST_genAsm_top(AST* oAST, Args* outBuffs);
-int32_t AST_deinit(AST* ast);
+int32_t ast_deinit(AST* ast);
 
 char* instructUnit_fromAsmLine(Args* outBuffs, char* pikaAsm);
 ByteCodeFrame* byteCodeFrame_appendFromAsm(ByteCodeFrame* bf, char* pikaAsm);
