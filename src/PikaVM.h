@@ -223,8 +223,6 @@ static inline char* PikaVMFrame_getConstWithInstructUnit(
                                  instructUnit_getConstPoolIndex(ins_unit));
 }
 
-pika_bool PikaVMFrame_checkBreakPoint(PikaVMFrame* vm);
-
 typedef struct {
     PikaObj* globals;
     pika_bool in_repl;
@@ -325,12 +323,6 @@ VMParameters* pikaVM_runSingleFile(PikaObj* self, char* filename);
 VMParameters* pikaVM_runByteCodeFile(PikaObj* self, char* filename);
 Arg* obj_runMethodArg(PikaObj* self, PikaObj* method_args_obj, Arg* method_arg);
 PikaObj* pikaVM_runFile(PikaObj* self, char* file_name);
-Arg* _vm_slice(PikaVMFrame* vm,
-               PikaObj* self,
-               Arg* end,
-               Arg* obj,
-               Arg* start,
-               int step);
 
 typedef struct {
     VMParameters* locals;
