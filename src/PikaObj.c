@@ -75,7 +75,7 @@ void _VMEvent_deinit(void);
 void pikaGC_markObj(PikaGC* gc, PikaObj* self);
 void _pikaGC_mark(PikaGC* gc);
 void obj_dump(PikaObj* self);
-void Locals_deinit(PikaObj* self);
+void locals_deinit(PikaObj* self);
 #if __linux
 static void disable_raw_mode(void);
 #endif
@@ -132,7 +132,7 @@ PIKA_RES fast_atoi_safe(char* src, int64_t* out) {
 
 static int32_t obj_deinit_no_del(PikaObj* self) {
     /* free the list */
-    Locals_deinit(self);
+    locals_deinit(self);
     args_deinit_ex(self->list, pika_true);
 #if PIKA_KERNAL_DEBUG_ENABLE
     if (NULL != self->aName) {

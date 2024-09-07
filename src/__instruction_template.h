@@ -33,7 +33,7 @@
 
 #if defined(__INS_TABLE)
 #define def_ins(__INS_NAME) \
-    [_##PIKA_VM_INS_##__INS_NAME] = &VM_instruction_handler_##__INS_NAME,
+    [_##PIKA_VM_INS_##__INS_NAME] = &vm_inst_handler_##__INS_NAME,
 #endif
 
 #if defined(__INS_COMPARE)
@@ -53,7 +53,7 @@
 #if defined(__INS_OPCODE)
 #define def_ins(__INS_NAME)                              \
     [_##PIKA_VM_INS_##__INS_NAME] = {                    \
-        .handler = &VM_instruction_handler_##__INS_NAME, \
+        .handler = &vm_inst_handler_##__INS_NAME, \
         .op_str = (const char[]){#__INS_NAME},           \
         .op_str_len = sizeof(#__INS_NAME) - 1,           \
         .op_idx = _##PIKA_VM_INS_##__INS_NAME,           \
