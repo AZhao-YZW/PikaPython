@@ -69,9 +69,9 @@ Arg *vm_inst_handler_OUT(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_re
         /* in block, is a kw arg */
         arg_setIsKeyword(aOut, pika_true);
         arg_setName(aOut, sArgPath);
-        Arg *res = arg_copy_noalloc(aOut, arg_ret_reg);
+        Arg *aRes = arg_copy_noalloc(aOut, arg_ret_reg);
         arg_deinit(aOut);
-        return res;
+        return aRes;
     }
 
     if (locals_check_lreg(sArgPath)) {

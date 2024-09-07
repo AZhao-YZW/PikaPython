@@ -350,21 +350,19 @@ Arg *vm_inst_handler_RUN(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_re
         /* init object */
         PikaObj* oNew = arg_getPtr(aReturn);
         obj_setName(oNew, sRunPath);
-        Arg *aMethod =
-            obj_getMethodArgWithFullPath_noalloc(oNew, "__init__", &arg_reg1);
+        Arg *aMethod2 = obj_getMethodArgWithFullPath_noalloc(oNew, "__init__", &arg_reg1);
         oSublocalsInit = locals_new(NULL);
         Arg *aReturnInit = NULL;
-        if (NULL == aMethod) {
+        if (NULL == aMethod2) {
             goto __init_exit;
         }
         vm_frame_load_args_from_method_arg(vm, oNew, oSublocalsInit->list,
-                                          aMethod, "__init__", NULL, iNumUsed);
+                                          aMethod2, "__init__", NULL, iNumUsed);
         /* load args failed */
         if (vm->vm_thread->error_code != 0) {
             goto __init_exit;
         }
-        aReturnInit = obj_runMethodArgWithState(oNew, oSublocalsInit, aMethod,
-                                                vm->vm_thread);
+        aReturnInit = obj_runMethodArgWithState(oNew, oSublocalsInit, aMethod2, vm->vm_thread);
     __init_exit:
         if (NULL != aReturnInit) {
             arg_deinit(aReturnInit);
@@ -373,12 +371,11 @@ Arg *vm_inst_handler_RUN(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_re
         pika_assert(obj_getFlag(oSublocals, OBJ_FLAG_GC_ROOT));
 #endif
         obj_deinit(oSublocalsInit);
-        if (NULL != aMethod) {
-            arg_deinit(aMethod);
+        if (NULL != aMethod2) {
+            arg_deinit(aMethod2);
         }
     }
 
-    goto __exit;
 __exit:
     if (NULL != aMethod) {
         arg_deinit(aMethod);
