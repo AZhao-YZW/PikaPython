@@ -28,8 +28,9 @@
 #include "PikaObj.h"
 #include "dataArgs.h"
 #include "dataStack.h"
+#include "ast.h"
 
-typedef PikaObj AST;
+#define PIKA_BLOCK_SPACE 4
 
 typedef struct {
     Stack* stack;
@@ -48,8 +49,26 @@ typedef struct Parser {
     uint32_t label_pc;
 } Parser;
 
+typedef char* (*fn_parser_Lines2Target)(Parser* self, char* sPyLines);
+
+typedef struct Asmer {
+    char* asm_code;
+    uint8_t block_deepth_now;
+    uint8_t is_new_line;
+    char* line_pointer;
+} Asmer;
+
 char* parser_remove_comment(char* line);
 Parser* parser_create(void);
 AST* parser_line_to_ast(Parser* self, char* line);
+char* parser_line2Target(Parser* self, char* line);
+int parser_deinit(Parser* parser);
+int parser_file2DocFile(Parser* self, char* sPyFile, char* sDocFile);
+char* parser_ast2Asm(Parser* self, AST* ast);
+char* parser_lines2Doc(Parser* self, char* sPyLines);
+char* parser_file2Doc(Parser* self, char* filename);
+char* pika_file2Asm(Args* outBuffs, char* filename);
+char* pika_lines2Array(char* lines);
+char* pika_line2Asm(Args* buffs_p, char* line, Stack* blockStack);
 
 #endif

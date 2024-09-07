@@ -21,34 +21,30 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __AST_H__
-#define __AST_H__
+#ifndef __TOKEN_H__
+#define __TOKEN_H__
 
-#include "PikaObj.h"
+#include "dataArgs.h"
 
-#define _VAL_NEED_INIT -1
+typedef enum TokenType {
+    TOKEN_STREND = 0,
+    TOKEN_SYMBOL,
+    TOKEN_KEYWORD,
+    TOKEN_OPERATOR,
+    TOKEN_DEVIDER,
+    TOKEN_LITERAL,
+} TokenType;
 
-typedef PikaObj AST;
+typedef struct LexToken {
+    char* tokenStream;
+    enum TokenType type;
+    char* pyload;
+} LexToken;
 
-typedef enum _GenRuleValType {
-    VAL_NONEVAL,
-    VAL_DYNAMIC,
-    VAL_STATIC_,
-} GenRuleValType;
-
-typedef struct GenRule {
-    char* ins;
-    GenRuleValType type;
-    char* ast;
-    char* val;
-} GenRule;
-
-AST* ast_create(void);
-char* AST_getNodeAttr(AST* ast, char* sAttrName);
-PIKA_RES ast_set_node_attr(AST* ast, char* attr_name, char* attr_val);
-char* AST_getThisBlock(AST* ast);
-int AST_getBlockDeepthNow(AST* ast);
-char* AST_genAsm_top(AST* oAST, Args* outBuffs);
-int32_t ast_deinit(AST* ast);
+uint8_t Token_isBranketStart(LexToken* token);
+char* TokenStream_pop(Args* buffs, char** sTokenStream_pp);
+uint16_t TokenStream_getSize(char* tokenStream);
+void LexToken_update(struct LexToken* lex_token);
+void LexToken_init(struct LexToken* lt);
 
 #endif
