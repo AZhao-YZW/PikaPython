@@ -26,33 +26,16 @@
 #include "parser.h"
 #include "PikaParser.h"
 #include "TinyObj.h"
+#include "lexer.h"
+#include "cursor.h"
 
 extern int32_t Parser_getPyLineBlockDeepth(char* sLine);
-extern char* Suger_multiReturn(Args* out_buffs, char* sLine);
-
-extern char* Cursor_splitCollect(Args* buffs, char* stmt, char* devide, int index);
+extern char* _comprehension2Asm(Args* outBuffs, int iBlockDeepth, char* sSubStmt1, char* sSbuStmt2, char* sSubStmt3);
 extern char* Parser_popSubStmt(Args* outbuffs, char** stmt_p, char* sDelimiter);
-
-extern char* Cursor_popToken(Args* buffs, char** pStmt, char* devide);
-extern bool Cursor_isContain(char* stmt, TokenType type, char* pyload);
-extern void Cursor_iterStart(struct Cursor* cs);
-extern void Cursor_iterEnd(struct Cursor* cs);
-extern void Cursor_deinit(struct Cursor* cs);
-
 extern char* _Parser_popLastSubStmt(Args* outbuffs, char** sStmt_p, char* sDelimiter, pika_bool bSkipBracket);
 extern uint8_t Parser_checkIsDirect(char* sStr);
 extern char* Parser_popLastSubStmt(Args* outbuffs, char** sStmt_p, char* sDelimiter);
 extern int Parser_getSubStmtNum(char* sSubStmts, char* sDelimiter);
-
-extern uint8_t Suger_selfOperator(Args* outbuffs, char* sStmt, char** sRight_p, char** sLeft_p);
-extern char* Suger_leftSlice(Args* outBuffs, char* sRight, char** sLeft_p);
-extern char* Suger_format(Args* outBuffs, char* sRight);
-extern char* Suger_not_in(Args* out_buffs, char* sLine);
-char* Suger_is_not(Args* out_buffs, char* sLine);
-
-extern StmtType Lexer_matchStmtType(char* right);
-extern char* Lexer_getOperator(Args* outBuffs, char* sStmt);
-extern char* _remove_sub_stmt(Args* outBuffs, char* sStmt);
 
 AST* ast_parse_stmt(AST* ast, char* stmt);
 PIKA_RES ast_parse_substmt(AST* ast, char* node_content);
@@ -119,7 +102,7 @@ static void ast_parse_comprehension(AST* ast, Args* out_buffs, char* stmt)
 
 static void ast_parse_list_comprehension(AST *ast, Args *buffs, char *stmt)
 {
-    if (Cursor_isContain(stmt, TOKEN_keyword, " for ")) {
+    if (Cursor_isContain(stmt, TOKEN_KEYWORD, " for ")) {
         ast_parse_comprehension(ast, buffs, stmt);
         return;
     }
@@ -235,13 +218,13 @@ int solve_method_stmt(AST *ast, Args *buffs, char *right)
     char* last_stmt = method_stmt;
     /* for method()() */
     int bracket_num =
-        _Cursor_count(method_stmt, TOKEN_devider, "(", true) +
-        _Cursor_count(method_stmt, TOKEN_devider, "[", true);
+        _Cursor_count(method_stmt, TOKEN_DEVIDER, "(", true) +
+        _Cursor_count(method_stmt, TOKEN_DEVIDER, "[", true);
     if (bracket_num > 1) {
         last_stmt =
             _Parser_popLastSubStmt(buffs, &method_stmt, "(", false);
         /* for (...) */
-        if (_Cursor_count(last_stmt, TOKEN_devider, "(", false) == 1) {
+        if (_Cursor_count(last_stmt, TOKEN_DEVIDER, "(", false) == 1) {
             char* method_check = strsGetFirstToken(buffs, last_stmt, '(');
             if (strEqu(method_check, "")) {
                 last_stmt = strsAppend(buffs, ".", last_stmt);
@@ -407,7 +390,7 @@ AST* ast_parse_stmt(AST* ast, char* stmt)
         Cursor_forEach(cs, stmt) {
             Cursor_iterStart(&cs);
             if (!is_meet_equ && strEqu(cs.token1.pyload, "=") &&
-                cs.token1.type == TOKEN_operator) {
+                cs.token1.type == TOKEN_OPERATOR) {
                 is_meet_equ = 1;
                 Cursor_iterEnd(&cs);
                 continue;
@@ -445,7 +428,7 @@ AST* ast_parse_stmt(AST* ast, char* stmt)
         ast_set_node_attr(ast, (char*)"left", left);
     }
     /* match statment type */
-    stmt_type = Lexer_matchStmtType(right);
+    stmt_type = lexer_match_stmt_type(right);
     if (STMT_TUPLE == stmt_type) {
         right = strsFormat(&buffs, PIKA_LINE_BUFF_SIZE, "(%s)", right);
         stmt_type = STMT_METHOD;
@@ -476,13 +459,13 @@ static char* get_def_default_stmt(Args* out_buffs, char** declare_out) {
     char* arg_list = strsCut(&buffs, declare_str, '(', ')');
     char* default_out = NULL;
     pika_assert(NULL != arg_list);
-    int iArgNum = _Cursor_count(arg_list, TOKEN_devider, ",", true) + 1;
+    int iArgNum = _Cursor_count(arg_list, TOKEN_DEVIDER, ",", true) + 1;
     for (int i = 0; i < iArgNum; i++) {
         char* item = Cursor_popToken(&buffs, &arg_list, ",");
         char* default_val = NULL;
         char* default_key = NULL;
         bool is_default = false;
-        if (Cursor_isContain(item, TOKEN_operator, "=")) {
+        if (Cursor_isContain(item, TOKEN_OPERATOR, "=")) {
             /* has default value */
             default_val = Cursor_splitCollect(&buffs, item, "=", 1);
             default_key = Cursor_splitCollect(&buffs, item, "=", 0);
@@ -512,6 +495,12 @@ static char* get_def_default_stmt(Args* out_buffs, char** declare_out) {
     return default_out;
 #endif
 }
+
+enum {
+    BLK_NOT_MATCHED,
+    BLK_MATCHED,
+    BLK_EXIT
+};
 
 static uint8_t expr_kw_to_ast(char *kw, char **stmt, AST *ast, BlockState *blk_state, Args *buffs)
 {
@@ -662,6 +651,11 @@ uint8_t class_kw_to_ast(char *kw, char **stmt, AST *ast, BlockState *blk_state, 
     return BLK_MATCHED;
 }
 
+enum kw_match_type {
+    KW_START,
+    KW_EQUAL
+};
+
 uint8_t keyword_to_ast(char **stmt, AST *ast, BlockState *blk_state, Args *buffs)
 {
     static struct {
@@ -795,4 +789,429 @@ __block_matched:
 __exit:
     strsDeinit(&buffs);
     return ast;
+}
+
+char* AST_getNodeAttr(AST* ast, char* sAttrName) {
+    return obj_getStr(ast, sAttrName);
+}
+
+char* AST_getThisBlock(AST* ast) {
+    return obj_getStr(ast, "block");
+}
+
+int AST_getBlockDeepthNow(AST* ast) {
+    return obj_getInt(ast, "blockDeepth");
+}
+
+char* AST_genAsm(AST* oAST, AST* subAst, Args* outBuffs, char* sPikaAsm) {
+    int depth = obj_getInt(oAST, "depth");
+    Args buffs = {0};
+    char* buff = args_getBuff(&buffs, PIKA_SPRINTF_BUFF_SIZE);
+
+    /* comprehension */
+    if (NULL != AST_getNodeAttr(subAst, "list")) {
+        pika_sprintf(buff, "%d %s \n", depth, "LST");
+        sPikaAsm = strsAppend(&buffs, sPikaAsm, buff);
+    }
+
+    /* Solve sub stmt */
+    while (1) {
+        QueueObj* subStmt = queueObj_popObj(subAst);
+        if (NULL == subStmt) {
+            break;
+        }
+        obj_setInt(oAST, "depth", depth + 1);
+        sPikaAsm = AST_genAsm(oAST, subStmt, &buffs, sPikaAsm);
+    }
+
+    /* Byte code generate rules */
+    const GenRule rules_after[] = {
+        {.ins = "RUN", .type = VAL_DYNAMIC, .ast = "method"},
+        {.ins = "OPT", .type = VAL_DYNAMIC, .ast = "operator"},
+        {.ins = "BYT", .type = VAL_DYNAMIC, .ast = "bytes"},
+        {.ins = "NUM", .type = VAL_DYNAMIC, .ast = "num"},
+        {.ins = "IMP", .type = VAL_DYNAMIC, .ast = "import"},
+        {.ins = "INH", .type = VAL_DYNAMIC, .ast = "inhert"},
+        {.ins = "REF", .type = VAL_DYNAMIC, .ast = "ref"},
+        {.ins = "STR", .type = VAL_DYNAMIC, .ast = "string"},
+        {.ins = "SLC", .type = VAL_NONEVAL, .ast = "slice"},
+        {.ins = "DCT", .type = VAL_NONEVAL, .ast = "dict"},
+        {.ins = "TPL", .type = VAL_NONEVAL, .ast = "tuple"},
+        {.ins = "NLS", .type = VAL_NONEVAL, .ast = "list"},
+        {.ins = "OUT", .type = VAL_DYNAMIC, .ast = "left"}};
+
+    /* comprehension */
+    if (NULL != AST_getNodeAttr(oAST, "comprehension")) {
+        int iBlockDeepth = AST_getBlockDeepthNow(oAST);
+        char* sSubStmt1 = AST_getNodeAttr(oAST, "substmt1");
+        char* sSubStmt2 = AST_getNodeAttr(oAST, "substmt2");
+        char* sSubStmt3 = AST_getNodeAttr(oAST, "substmt3");
+        sPikaAsm =
+            strsAppend(&buffs, sPikaAsm,
+                       _comprehension2Asm(&buffs, iBlockDeepth, sSubStmt1,
+                                          sSubStmt2, sSubStmt3));
+    }
+
+    /* append the syntax item */
+    for (size_t i = 0; i < sizeof(rules_after) / sizeof(GenRule); i++) {
+        GenRule rule = rules_after[i];
+        char* sNodeVal = AST_getNodeAttr(subAst, rule.ast);
+        if (NULL != sNodeVal) {
+            /* e.g. "0 RUN print \n" */
+            pika_sprintf(buff, "%d %s ", depth, rule.ins);
+            Arg* aBuff = arg_newStr(buff);
+            if (rule.type == VAL_DYNAMIC) {
+                aBuff = arg_strAppend(aBuff, sNodeVal);
+            }
+            aBuff = arg_strAppend(aBuff, "\n");
+            sPikaAsm = strsAppend(&buffs, sPikaAsm, arg_getStr(aBuff));
+            arg_deinit(aBuff);
+        }
+    }
+
+    obj_setInt(oAST, "depth", depth - 1);
+    goto __exit;
+__exit:
+    sPikaAsm = strsCopy(outBuffs, sPikaAsm);
+    strsDeinit(&buffs);
+    return sPikaAsm;
+}
+
+char* GenRule_toAsm(GenRule rule, Args* buffs, AST* ast, char* pikaAsm, int depth) {
+    char* buff = args_getBuff(buffs, PIKA_SPRINTF_BUFF_SIZE);
+    /* parse stmt ast */
+    pikaAsm = AST_genAsm(ast, ast, buffs, pikaAsm);
+    /* e.g. "0 CTN \n" */
+    pika_sprintf(buff, "%d %s ", depth, rule.ins);
+    Arg* aBuff = arg_newStr(buff);
+    if (rule.type == VAL_DYNAMIC) {
+        aBuff = arg_strAppend(aBuff, obj_getStr(ast, rule.ast));
+    }
+    if (rule.type == VAL_STATIC_) {
+        aBuff = arg_strAppend(aBuff, rule.val);
+    }
+    aBuff = arg_strAppend(aBuff, "\n");
+    pikaAsm = strsAppend(buffs, pikaAsm, arg_getStr(aBuff));
+    arg_deinit(aBuff);
+    return pikaAsm;
+}
+
+char* ASM_addBlockDeepth(AST* ast, Args* buffs_p, char* pikaAsm, uint8_t deepthOffset) {
+    pikaAsm = strsAppend(buffs_p, pikaAsm, (char*)"B");
+    char buff[11];
+    pikaAsm = strsAppend(buffs_p, pikaAsm, fast_itoa(buff, AST_getBlockDeepthNow(ast) + deepthOffset));
+    pikaAsm = strsAppend(buffs_p, pikaAsm, (char*)"\n");
+    return pikaAsm;
+}
+
+AST* line2Ast_withBlockDeepth(char* sLine, int iBlockDeepth) {
+    Parser* parser = parser_create();
+    parser->blk_state.depth = iBlockDeepth;
+    AST* ast = parser_line_to_ast(parser, sLine);
+    parser_deinit(parser);
+    return ast;
+}
+
+AST* line2Ast(char* sLine) {
+    return line2Ast_withBlockDeepth(sLine, 0);
+}
+
+char* AST_genAsm_top(AST* oAST, Args* outBuffs) {
+    const GenRule rules_topAst[] = {
+        {.ins = "CTN", .type = VAL_NONEVAL, .ast = "continue"},
+        {.ins = "BRK", .type = VAL_NONEVAL, .ast = "break"},
+        {.ins = "DEL", .type = VAL_DYNAMIC, .ast = "del"},
+        {.ins = "GLB", .type = VAL_DYNAMIC, .ast = "global"},
+        {.ins = "RIS", .type = VAL_DYNAMIC, .ast = "raise"},
+        {.ins = "ASS", .type = VAL_NONEVAL, .ast = "assert"},
+        {.ins = "RET", .type = VAL_NONEVAL, .ast = "return"}};
+
+    /* generate code for block ast */
+    const GenRule rules_block[] = {
+        {.ins = "TRY", .type = VAL_NONEVAL, .ast = "try"},
+        {.ins = "EXP", .type = VAL_NONEVAL, .ast = "except"},
+        {.ins = "NEL", .type = VAL_STATIC_, .ast = "else", .val = "1"},
+        {.ins = "JEZ", .type = VAL_STATIC_, .ast = "if", .val = "1"},
+        {.ins = "JEZ", .type = VAL_STATIC_, .ast = "while", .val = "2"},
+    };
+    Args buffs = {0};
+    char* sPikaAsm = strsCopy(&buffs, "");
+    QueueObj* oExitBlock;
+    pika_bool bblockMatched = 0;
+
+    if (NULL == oAST) {
+        sPikaAsm = NULL;
+        goto __exit;
+    }
+
+    /* skip for docsting */
+    if (NULL != AST_getNodeAttr(oAST, "docstring")) {
+        goto __exit;
+    }
+
+    oExitBlock = obj_getObj(oAST, "exitBlock");
+    /* exiting from block */
+    if (oExitBlock != NULL) {
+        while (1) {
+            uint8_t uDeepthOffset = obj_getInt(oExitBlock, "top") -
+                                    obj_getInt(oExitBlock, "bottom") - 1;
+            char* sBlockType = queueObj_popStr(oExitBlock);
+            if (NULL == sBlockType) {
+                break;
+            }
+            /* goto the while start when exit while block */
+            if (strEqu(sBlockType, "while")) {
+                sPikaAsm =
+                    ASM_addBlockDeepth(oAST, outBuffs, sPikaAsm, uDeepthOffset);
+                sPikaAsm = strsAppend(outBuffs, sPikaAsm, (char*)"0 JMP -1\n");
+            }
+#if PIKA_SYNTAX_EXCEPTION_ENABLE
+            /* goto the while start when exit while block */
+            if (strEqu(sBlockType, "try")) {
+                sPikaAsm =
+                    ASM_addBlockDeepth(oAST, outBuffs, sPikaAsm, uDeepthOffset);
+                sPikaAsm = strsAppend(outBuffs, sPikaAsm, (char*)"0 NTR \n");
+                sPikaAsm = strsAppend(outBuffs, sPikaAsm, (char*)"0 GER \n");
+                sPikaAsm = strsAppend(outBuffs, sPikaAsm, (char*)"0 JEZ 2\n");
+            }
+#endif
+            /* goto the while start when exit while block */
+            if (strEqu(sBlockType, "for")) {
+                sPikaAsm =
+                    ASM_addBlockDeepth(oAST, outBuffs, sPikaAsm, uDeepthOffset);
+                sPikaAsm = strsAppend(outBuffs, sPikaAsm, (char*)"0 JMP -1\n");
+                /* garbage collect for the list */
+                sPikaAsm =
+                    ASM_addBlockDeepth(oAST, outBuffs, sPikaAsm, uDeepthOffset);
+                char _l_x[] = "$lx";
+                char block_deepth_char =
+                    AST_getBlockDeepthNow(oAST) + uDeepthOffset + '0';
+                _l_x[sizeof(_l_x) - 2] = block_deepth_char;
+                sPikaAsm = strsAppend(outBuffs, sPikaAsm, (char*)"0 DEL ");
+                sPikaAsm = strsAppend(outBuffs, sPikaAsm, (char*)_l_x);
+                sPikaAsm = strsAppend(outBuffs, sPikaAsm, (char*)"\n");
+            }
+            /* return when exit method */
+            if (strEqu(sBlockType, "def")) {
+                sPikaAsm = ASM_addBlockDeepth(oAST, outBuffs, sPikaAsm,
+                                              uDeepthOffset + 1);
+                sPikaAsm = strsAppend(outBuffs, sPikaAsm, (char*)"0 RET \n");
+            }
+            /* return when exit class */
+            if (strEqu(sBlockType, "class")) {
+                sPikaAsm = ASM_addBlockDeepth(oAST, outBuffs, sPikaAsm,
+                                              uDeepthOffset + 1);
+                sPikaAsm =
+                    strsAppend(outBuffs, sPikaAsm, (char*)"0 RAS $origin\n");
+                sPikaAsm = ASM_addBlockDeepth(oAST, outBuffs, sPikaAsm, 1);
+                sPikaAsm =
+                    strsAppend(outBuffs, sPikaAsm, (char*)"0 NEW self\n");
+                sPikaAsm = strsAppend(outBuffs, sPikaAsm, (char*)"0 RET \n");
+            }
+        }
+    }
+    /* add block depth */
+    /* example: B0 */
+    sPikaAsm = ASM_addBlockDeepth(oAST, outBuffs, sPikaAsm, 0);
+
+    /* "depth" is invoke depth, not the blockDeepth */
+    obj_setInt(oAST, "depth", 0);
+
+    /* match block */
+    bblockMatched = 0;
+    if (strEqu(AST_getThisBlock(oAST), "for")) {
+        /* for "for" iter */
+        char* sArgIn = AST_getNodeAttr(oAST, "arg_in");
+#if !PIKA_NANO_ENABLE
+        char* sArgInKv = NULL;
+#endif
+        Arg* aNewAsm = arg_newStr("");
+        char _l_x[] = "$lx";
+        char sBlockDeepthCHar = '0';
+        sBlockDeepthCHar += AST_getBlockDeepthNow(oAST);
+        _l_x[sizeof(_l_x) - 2] = sBlockDeepthCHar;
+        /* init iter */
+        /*     get the iter(_l<x>) */
+        sPikaAsm = AST_genAsm(oAST, oAST, &buffs, sPikaAsm);
+        aNewAsm = arg_strAppend(aNewAsm, "0 OUT ");
+        aNewAsm = arg_strAppend(aNewAsm, _l_x);
+        aNewAsm = arg_strAppend(aNewAsm, "\n");
+        sPikaAsm = strsAppend(&buffs, sPikaAsm, arg_getStr(aNewAsm));
+        arg_deinit(aNewAsm);
+        aNewAsm = arg_newStr("");
+        /* get next */
+        /*     run next(_l<x>) */
+        /*     check item is exist */
+        /*
+            $n = $lx.next()
+            EST $n
+            k, v = $n
+            DEL $n
+        */
+
+#if !PIKA_NANO_ENABLE
+        if (_check_is_multi_assign(sArgIn)) {
+            sArgInKv = sArgIn;
+            sArgIn = "$tmp";
+        }
+#endif
+
+        sPikaAsm = ASM_addBlockDeepth(oAST, outBuffs, sPikaAsm, 0);
+        aNewAsm = arg_strAppend(aNewAsm, "0 RUN ");
+        aNewAsm = arg_strAppend(aNewAsm, _l_x);
+        aNewAsm = arg_strAppend(aNewAsm,
+                                ".__next__\n"
+                                "0 OUT ");
+        aNewAsm = arg_strAppend(aNewAsm, sArgIn);
+        aNewAsm = arg_strAppend(aNewAsm,
+                                "\n"
+                                "0 EST ");
+        aNewAsm = arg_strAppend(aNewAsm, sArgIn);
+        aNewAsm = arg_strAppend(aNewAsm, "\n0 JEZ 2\n");
+        sPikaAsm = strsAppend(&buffs, sPikaAsm, arg_getStr(aNewAsm));
+        arg_deinit(aNewAsm);
+
+#if !PIKA_NANO_ENABLE
+        if (NULL != sArgInKv) {
+            int out_num = 0;
+            while (1) {
+                char* item = Cursor_popToken(&buffs, &sArgInKv, ",");
+                if (item[0] == '\0') {
+                    break;
+                }
+                char* stmt = strsFormat(&buffs, PIKA_LINE_BUFF_SIZE,
+                                        "%s = $tmp[%d]\n", item, out_num);
+
+                AST* ast_this = line2Ast_withBlockDeepth(
+                    stmt, AST_getBlockDeepthNow(oAST) + 1);
+                sPikaAsm = strsAppend(&buffs, sPikaAsm,
+                                      AST_genAsm_top(ast_this, &buffs));
+                ast_deinit(ast_this);
+                out_num++;
+            }
+            sPikaAsm = ASM_addBlockDeepth(oAST, outBuffs, sPikaAsm, 1);
+            sPikaAsm = strsAppend(&buffs, sPikaAsm, "0 DEL $tmp\n");
+        }
+#endif
+
+        bblockMatched = 1;
+        goto __exit;
+    }
+    if (strEqu(AST_getThisBlock(oAST), "elif")) {
+        /* skip if __else is 0 */
+        sPikaAsm = strsAppend(&buffs, sPikaAsm, "0 NEL 1\n");
+        /* parse stmt ast */
+        sPikaAsm = AST_genAsm(oAST, oAST, &buffs, sPikaAsm);
+        /* skip if stmt is 0 */
+        sPikaAsm = strsAppend(&buffs, sPikaAsm, "0 JEZ 1\n");
+        bblockMatched = 1;
+        goto __exit;
+    }
+    if (strEqu(AST_getThisBlock(oAST), "def")) {
+#if !PIKA_NANO_ENABLE
+        char* sDefaultStmts = AST_getNodeAttr(oAST, "default");
+#endif
+        sPikaAsm = strsAppend(&buffs, sPikaAsm, "0 DEF ");
+        sPikaAsm =
+            strsAppend(&buffs, sPikaAsm, AST_getNodeAttr(oAST, "declare"));
+        sPikaAsm = strsAppend(&buffs, sPikaAsm,
+                              "\n"
+                              "0 JMP 1\n");
+
+#if !PIKA_NANO_ENABLE
+        if (NULL != sDefaultStmts) {
+            int iStmtNum =
+                _Cursor_count(sDefaultStmts, TOKEN_DEVIDER, ",", pika_true) + 1;
+            for (int i = 0; i < iStmtNum; i++) {
+                char* sStmt = Cursor_popToken(&buffs, &sDefaultStmts, ",");
+                char* sArgName = strsGetFirstToken(&buffs, sStmt, '=');
+                sPikaAsm = ASM_addBlockDeepth(oAST, &buffs, sPikaAsm, 1);
+                sPikaAsm = strsAppend(&buffs, sPikaAsm, "0 EST ");
+                sPikaAsm = strsAppend(&buffs, sPikaAsm, sArgName);
+                sPikaAsm = strsAppend(&buffs, sPikaAsm, "\n");
+                sPikaAsm = strsAppend(&buffs, sPikaAsm, "0 JNZ 2\n");
+                AST* ast_this = line2Ast_withBlockDeepth(
+                    sStmt, AST_getBlockDeepthNow(oAST) + 1);
+                sPikaAsm = strsAppend(&buffs, sPikaAsm,
+                                      AST_genAsm_top(ast_this, &buffs));
+                ast_deinit(ast_this);
+            }
+        }
+#endif
+
+        bblockMatched = 1;
+        goto __exit;
+    }
+
+    if (strEqu(AST_getThisBlock(oAST), "class")) {
+        char* sDeclare = obj_getStr(oAST, "declare");
+        char* sThisClass = NULL;
+        char* sSuperClass = NULL;
+        if (strIsContain(sDeclare, '(')) {
+            sThisClass = strsGetFirstToken(&buffs, sDeclare, '(');
+            sSuperClass = strsCut(&buffs, sDeclare, '(', ')');
+        } else {
+            sThisClass = sDeclare;
+            sSuperClass = "";
+        }
+        if (strEqu("", sSuperClass)) {
+            /* default superClass */
+            sSuperClass = "TinyObj";
+        }
+        if (strEqu("TinyObj", sSuperClass)) {
+            /* default superClass */
+            sSuperClass = "TinyObj";
+        }
+        sPikaAsm = strsAppend(&buffs, sPikaAsm, "0 CLS ");
+        sPikaAsm = strsAppend(&buffs, sPikaAsm,
+                              strsAppend(&buffs, sThisClass,
+                                         "()\n"
+                                         "0 JMP 1\n"));
+        char sBlockDeepth[] = "B0\n";
+        /* goto deeper block */
+        sBlockDeepth[1] += AST_getBlockDeepthNow(oAST) + 1;
+        sPikaAsm = strsAppend(&buffs, sPikaAsm, sBlockDeepth);
+        sPikaAsm = strsAppend(&buffs, sPikaAsm, "0 RUN ");
+        sPikaAsm = strsAppend(&buffs, sPikaAsm, sSuperClass);
+        sPikaAsm = strsAppend(&buffs, sPikaAsm, "\n");
+        sPikaAsm = strsAppend(&buffs, sPikaAsm, "0 OUT self\n");
+        sPikaAsm = strsAppend(&buffs, sPikaAsm, sBlockDeepth);
+        sPikaAsm = strsAppend(&buffs, sPikaAsm, "0 RAS self\n");
+        bblockMatched = 1;
+        goto __exit;
+    }
+
+    for (size_t i = 0; i < sizeof(rules_block) / sizeof(GenRule); i++) {
+        GenRule rule = rules_block[i];
+        if (strEqu(AST_getThisBlock(oAST), rule.ast)) {
+            sPikaAsm = GenRule_toAsm(rule, &buffs, oAST, sPikaAsm, 0);
+            bblockMatched = 1;
+            goto __exit;
+        }
+    }
+
+    /* generate code for top level ast */
+    for (size_t i = 0; i < sizeof(rules_topAst) / sizeof(rules_topAst[0]);
+         i++) {
+        GenRule item = rules_topAst[i];
+        if (obj_isArgExist(oAST, item.ast)) {
+            sPikaAsm = GenRule_toAsm(item, &buffs, oAST, sPikaAsm, 0);
+            bblockMatched = 1;
+            goto __exit;
+        }
+    }
+__exit:
+    if (NULL == sPikaAsm) {
+        strsDeinit(&buffs);
+        return NULL;
+    }
+    if (!bblockMatched) {
+        /* parse stmt ast */
+        sPikaAsm = AST_genAsm(oAST, oAST, &buffs, sPikaAsm);
+    }
+
+    /* output pikaAsm */
+    sPikaAsm = strsCopy(outBuffs, sPikaAsm);
+    strsDeinit(&buffs);
+    return sPikaAsm;
 }

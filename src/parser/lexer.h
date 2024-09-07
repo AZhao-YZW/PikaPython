@@ -26,6 +26,29 @@
 
 #include "dataArgs.h"
 
-char* lexer_get_token_stream(Args* out_buff, char* stmt);
+typedef enum StmtType {
+    STMT_REFERENCE,
+    STMT_TUPLE,
+    STMT_STRING,
+    STMT_BYTES,
+    STMT_NUMBER,
+    STMT_METHOD,
+    STMT_CHAIN,
+    STMT_OPERATOR,
+    STMT_INHERIT,
+    STMT_IMPORT,
+    STMT_LIST,
+    STMT_SLICE,
+    STMT_DICT,
+    STMT_NONE
+} StmtType;
+
+char* lexer_get_token_stream(Args *out_buff, char *stmt);
+StmtType lexer_match_stmt_type(char *right);
+char* Lexer_getOperator(Args* outBuffs, char* sStmt);
+Arg* arg_strAddIndentMulti(Arg* aStrInMuti, int indent);
+
+// debug
+char* lexer_print_token_stream(Args* out_buffs, char *token_stream);
 
 #endif

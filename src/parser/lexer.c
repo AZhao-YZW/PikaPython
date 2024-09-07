@@ -24,6 +24,8 @@
 #include "lexer.h"
 #include "PikaPlatform.h"
 #include "PikaParser.h"
+#include "cursor.h"
+#include "token.h"
 
 static Arg* lexer_set_token(Arg* token_stream, enum TokenType type, char* op_str)
 {
@@ -61,12 +63,12 @@ static Arg* lexer_set_symbol(Arg* token_stream, char* stmt, int32_t i, int32_t* 
     if ((symbol_buff[0] == '\'' || symbol_buff[0] == '"') ||    // "" or ''
         (symbol_buff[0] >= '0' && symbol_buff[0] <= '9') ||     // number
         (symbol_buff[0] == 'b' && (symbol_buff[1] == '\'' || symbol_buff[1] == '"'))) { // b"" or b''
-        token_stream = lexer_set_token(token_stream, TOKEN_literal, symbol_buff);
+        token_stream = lexer_set_token(token_stream, TOKEN_LITERAL, symbol_buff);
         goto __exit;
     }
 
     /* symbol */
-    token_stream = lexer_set_token(token_stream, TOKEN_symbol, symbol_buff);
+    token_stream = lexer_set_token(token_stream, TOKEN_SYMBOL, symbol_buff);
 
 __exit:
     *symbol_start_index = -1;
@@ -123,7 +125,7 @@ static bool lexer_match_devider(Arg** token_stream, char* stmt, int32_t i, uint8
     if (lexer_match_char(support_devider, sizeof(support_devider), c0)) {
         content[0] = c0;
         *token_stream = lexer_set_symbol(*token_stream, stmt, i, symbol_start_index);
-        *token_stream = lexer_set_token(*token_stream, TOKEN_devider, content);
+        *token_stream = lexer_set_token(*token_stream, TOKEN_DEVIDER, content);
         if (c0 == '(') {
             (*bracket_depth)++;
         }
@@ -171,7 +173,7 @@ static bool lexer_match_operater(Arg** token_stream, char* stmt, int32_t *i, int
                 content[1] = c1;
                 content[2] = (op_len == 3) ? c2 : 0;
                 *token_stream = lexer_set_symbol(*token_stream, stmt, *i, symbol_start_index);
-                *token_stream = lexer_set_token(*token_stream, TOKEN_operator, content);
+                *token_stream = lexer_set_token(*token_stream, TOKEN_OPERATOR, content);
                 *i = *i + op_len - 1;
                 return true;
             }
@@ -180,7 +182,7 @@ static bool lexer_match_operater(Arg** token_stream, char* stmt, int32_t *i, int
         /* single operators: +, -, *, ... */
         content[0] = c0;
         *token_stream = lexer_set_symbol(*token_stream, stmt, *i, symbol_start_index);
-        *token_stream = lexer_set_token(*token_stream, TOKEN_operator, content);
+        *token_stream = lexer_set_token(*token_stream, TOKEN_OPERATOR, content);
         return true;
     }
 
@@ -195,16 +197,16 @@ static bool lexer_match_key_word(Arg** token_stream, char* stmt, int32_t *i, int
         char *key_word;
         enum TokenType token_type;
     } kw_map[] = {
-        { "not",    TOKEN_operator },
-        { "and",    TOKEN_operator },
-        { "or",     TOKEN_operator },
-        { "is",     TOKEN_operator },
-        { "in",     TOKEN_operator },
-        { "if",     TOKEN_keyword  },
-        { "as",     TOKEN_operator },
-        { "for",    TOKEN_keyword  },
-        { "import", TOKEN_operator },
-        { "@inh",   TOKEN_operator },
+        { "not",    TOKEN_OPERATOR },
+        { "and",    TOKEN_OPERATOR },
+        { "or",     TOKEN_OPERATOR },
+        { "is",     TOKEN_OPERATOR },
+        { "in",     TOKEN_OPERATOR },
+        { "if",     TOKEN_KEYWORD  },
+        { "as",     TOKEN_OPERATOR },
+        { "for",    TOKEN_KEYWORD  },
+        { "import", TOKEN_OPERATOR },
+        { "@inh",   TOKEN_OPERATOR },
     };
     char kw_str_buff[sizeof(" import ")] = {0};
     bool is_match = false;
@@ -240,7 +242,7 @@ static bool lexer_match_key_word(Arg** token_stream, char* stmt, int32_t *i, int
     return false;
 }
 
-/* tokenStream is devided by space */
+/* token_stream is devided by space */
 /* a token is [TOKENTYPE|(CONTENT)] */
 char* lexer_get_token_stream(Args* out_buff, char* stmt)
 {
@@ -316,4 +318,328 @@ char* lexer_get_token_stream(Args* out_buff, char* stmt)
     token_stream_str = strsCopy(out_buff, token_stream_str);
     arg_deinit(token_stream);
     return token_stream_str;
+}
+
+StmtType lexer_match_stmt_type(char *right)
+{
+    Args buffs = {0};
+    StmtType eStmtType = STMT_NONE;
+    char* top_stmt = _remove_sub_stmt(&buffs, right);
+    bool operator = false;
+    bool method = false;
+    bool string = false;
+    bool bytes = false;
+    bool number = false;
+    bool symbol = false;
+    bool list = false;
+    bool slice = false;
+    bool dict = false;
+    bool import = false;
+    bool inherit = false;
+    bool chain = false;
+
+    Cursor_forEach(cs, top_stmt) {
+        Cursor_iterStart(&cs);
+        /* collect type */
+        if (strEqu(cs.token1.pyload, " import ")) {
+            import = true;
+            goto __iter_continue;
+        }
+        if (strEqu(cs.token1.pyload, "@inh ")) {
+            inherit = true;
+            goto __iter_continue;
+        }
+        if (strEqu(cs.token2.pyload, "[")) {
+            /* (symble | iteral | <]> | <)>) + <[> */
+            if (TOKEN_SYMBOL == cs.token1.type ||
+                TOKEN_LITERAL == cs.token1.type ||
+                strEqu(cs.token1.pyload, "]") ||
+                strEqu(cs.token1.pyload, ")")) {
+                /* keep the last one of the chain or slice */
+                slice = true;
+                chain = false;
+                goto __iter_continue;
+            }
+            /* ( <,> | <=> ) + <[> */
+            list = true;
+        }
+        if (strEqu(cs.token1.pyload, "[") && cs.iter_index == 1) {
+            /* VOID + <[> */
+            list = true;
+            method = false;
+            goto __iter_continue;
+        }
+        if (strEqu(cs.token1.pyload, "...")) {
+            goto __iter_continue;
+        }
+
+        if (strEqu(cs.token1.pyload, "pass")) {
+            goto __iter_continue;
+        }
+
+        if (strIsStartWith(cs.token1.pyload, ".")) {
+            if (cs.iter_index != 1) {
+                /* keep the last one of the chain or slice */
+                chain = true;
+                slice = false;
+                goto __iter_continue;
+            }
+        }
+        if (strEqu(cs.token1.pyload, "{")) {
+            dict = true;
+            goto __iter_continue;
+        }
+        if (cs.token1.type == TOKEN_OPERATOR) {
+            operator = true;
+            goto __iter_continue;
+        }
+        /* <(> */
+        if (strEqu(cs.token1.pyload, "(")) {
+            method = true;
+            slice = false;
+            goto __iter_continue;
+        }
+        if (cs.token1.type == TOKEN_LITERAL) {
+            if (cs.token1.pyload[0] == '\'' || cs.token1.pyload[0] == '"') {
+                string = true;
+                goto __iter_continue;
+            }
+            if (cs.token1.pyload[1] == '\'' || cs.token1.pyload[1] == '"') {
+                if (cs.token1.pyload[0] == 'b') {
+                    bytes = true;
+                    goto __iter_continue;
+                }
+            }
+            number = true;
+            goto __iter_continue;
+        }
+        if (cs.token1.type == TOKEN_SYMBOL) {
+            symbol = true;
+            goto __iter_continue;
+        }
+    __iter_continue:
+        Cursor_iterEnd(&cs);
+    }
+    if (inherit) {
+        eStmtType = STMT_INHERIT;
+        goto __exit;
+    }
+    if (import) {
+        eStmtType = STMT_IMPORT;
+        goto __exit;
+    }
+    if (operator) {
+        eStmtType = STMT_OPERATOR;
+        goto __exit;
+    }
+    if (slice) {
+        eStmtType = STMT_SLICE;
+        goto __exit;
+    }
+    if (chain) {
+        eStmtType = STMT_CHAIN;
+        goto __exit;
+    }
+    if (list) {
+        eStmtType = STMT_LIST;
+        goto __exit;
+    }
+    if (dict) {
+        eStmtType = STMT_DICT;
+        goto __exit;
+    }
+    if (method) {
+        eStmtType = STMT_METHOD;
+        goto __exit;
+    }
+    if (string) {
+        /* support multi assign */
+        if (Cursor_isContain(right, TOKEN_DEVIDER, ",")) {
+            eStmtType = STMT_TUPLE;
+            goto __exit;
+        }
+        eStmtType = STMT_STRING;
+        goto __exit;
+    }
+    if (bytes) {
+        /* support multi assign */
+        if (Cursor_isContain(right, TOKEN_DEVIDER, ",")) {
+            eStmtType = STMT_TUPLE;
+            goto __exit;
+        }
+        eStmtType = STMT_BYTES;
+        goto __exit;
+    }
+    if (number) {
+        /* support multi assign */
+        if (Cursor_isContain(right, TOKEN_DEVIDER, ",")) {
+            eStmtType = STMT_TUPLE;
+            goto __exit;
+        }
+        eStmtType = STMT_NUMBER;
+        goto __exit;
+    }
+    if (symbol) {
+        /* support multi assign */
+        if (Cursor_isContain(right, TOKEN_DEVIDER, ",")) {
+            eStmtType = STMT_TUPLE;
+            goto __exit;
+        }
+        eStmtType = STMT_REFERENCE;
+        goto __exit;
+    }
+__exit:
+    Cursor_deinit(&cs);
+    strsDeinit(&buffs);
+    return eStmtType;
+}
+
+// debug
+char* lexer_print_token_stream(Args* out_buffs, char* token_stream)
+{
+    pika_assert(token_stream);
+    /* init */
+    Args buffs = {0};
+    char* print_out = strsCopy(&buffs, "");
+
+    /* process */
+    uint16_t token_size = TokenStream_getSize(token_stream);
+    for (uint16_t i = 0; i < token_size; i++) {
+        char* sToken = TokenStream_pop(&buffs, &token_stream);
+        if (sToken[0] == TOKEN_OPERATOR) {
+            print_out = strsAppend(&buffs, print_out, "{opt}");
+            print_out = strsAppend(&buffs, print_out, sToken + 1);
+        }
+        if (sToken[0] == TOKEN_DEVIDER) {
+            print_out = strsAppend(&buffs, print_out, "{dvd}");
+            print_out = strsAppend(&buffs, print_out, sToken + 1);
+        }
+        if (sToken[0] == TOKEN_SYMBOL) {
+            print_out = strsAppend(&buffs, print_out, "{sym}");
+            print_out = strsAppend(&buffs, print_out, sToken + 1);
+        }
+        if (sToken[0] == TOKEN_LITERAL) {
+            print_out = strsAppend(&buffs, print_out, "{lit}");
+            print_out = strsAppend(&buffs, print_out, sToken + 1);
+        }
+    }
+    /* out put */
+    print_out = strsCopy(out_buffs, print_out);
+    strsDeinit(&buffs);
+    return print_out;
+}
+
+static char* _solveEqualLevelOperator(Args* buffs,
+                                      char* sOperator,
+                                      char* sOp1,
+                                      char* sOp2,
+                                      char* sStmt) {
+    if ((strEqu(sOperator, sOp1)) || (strEqu(sOperator, sOp2))) {
+        Cursor_forEach(cs, sStmt) {
+            Cursor_iterStart(&cs);
+            if (strEqu(cs.token1.pyload, sOp1)) {
+                sOperator = strsCopy(buffs, sOp1);
+            }
+            if (strEqu(cs.token1.pyload, sOp2)) {
+                sOperator = strsCopy(buffs, sOp2);
+            }
+            Cursor_iterEnd(&cs);
+        }
+        Cursor_deinit(&cs);
+    }
+    return sOperator;
+}
+
+static const char operators[][9] = {
+    "**",  "~",    "*",     "/",     "%",    "//",      "+",  "-",  ">>",
+    "<<",  "&",    "^",     "|",     "<",    "<=",      ">",  ">=", "!=",
+    "==",  " is ", " in ",  "%=",    "/=",   "//=",     "-=", "+=", "*=",
+    "**=", "^=",   " not ", " and ", " or ", " import "};
+
+char* Lexer_getOperator(Args* outBuffs, char* sStmt) {
+    Args buffs = {0};
+    char* sOperator = NULL;
+
+    // use parse state foreach to get operator
+    for (uint32_t i = 0; i < sizeof(operators) / 9; i++) {
+        Cursor_forEach(cs, sStmt) {
+            Cursor_iterStart(&cs);
+            // get operator
+            if (strEqu(cs.token1.pyload, (char*)operators[i])) {
+                // solve the iuuse of "~-1"
+                sOperator = strsCopy(&buffs, (char*)operators[i]);
+                Cursor_iterEnd(&cs);
+                break;
+            }
+            Cursor_iterEnd(&cs);
+        };
+        Cursor_deinit(&cs);
+    }
+
+    /* solve the iuuse of "~-1" */
+    if (strEqu(sOperator, "-")) {
+        Cursor_forEach(cs, sStmt) {
+            Cursor_iterStart(&cs);
+            if (strEqu(cs.token2.pyload, "-")) {
+                if (cs.token1.type == TOKEN_OPERATOR) {
+                    sOperator = strsCopy(&buffs, cs.token1.pyload);
+                    Cursor_iterEnd(&cs);
+                    break;
+                }
+            }
+            Cursor_iterEnd(&cs);
+        };
+        Cursor_deinit(&cs);
+    }
+
+    /* match the last operator in equal level */
+    sOperator = _solveEqualLevelOperator(&buffs, sOperator, "+", "-", sStmt);
+    sOperator = _solveEqualLevelOperator(&buffs, sOperator, "*", "/", sStmt);
+    /* out put */
+    if (NULL == sOperator) {
+        return NULL;
+    }
+    sOperator = strsCopy(outBuffs, sOperator);
+    strsDeinit(&buffs);
+    return sOperator;
+}
+
+Arg* arg_strAddIndent(Arg* aStrIn, int indent) {
+    if (0 == indent) {
+        return aStrIn;
+    }
+    /* add space */
+    char* sSpaces = pikaMalloc(indent + 1);
+    pika_platform_memset(sSpaces, ' ', indent);
+    sSpaces[indent] = '\0';
+    Arg* aRet = arg_newStr(sSpaces);
+    aRet = arg_strAppend(aRet, arg_getStr(aStrIn));
+    pikaFree(sSpaces, indent + 1);
+    arg_deinit(aStrIn);
+    return aRet;
+}
+
+Arg* arg_strAddIndentMulti(Arg* aStrInMuti, int indent) {
+    if (0 == indent) {
+        return aStrInMuti;
+    }
+    char* sStrInMuti = arg_getStr(aStrInMuti);
+    char* sLine = NULL;
+    int iLineNum = strGetLineNum(sStrInMuti);
+    Arg* aStrOut = arg_newStr("");
+    Args buffs = {0};
+    for (int i = 0; i < iLineNum; i++) {
+        sLine = strsPopLine(&buffs, &sStrInMuti);
+        Arg* aLine = arg_newStr(sLine);
+        aLine = arg_strAddIndent(aLine, indent);
+        sLine = arg_getStr(aLine);
+        aStrOut = arg_strAppend(aStrOut, sLine);
+        if (i != iLineNum - 1) {
+            aStrOut = arg_strAppend(aStrOut, "\n");
+        }
+        arg_deinit(aLine);
+    }
+    strsDeinit(&buffs);
+    arg_deinit(aStrInMuti);
+    return aStrOut;
 }

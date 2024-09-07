@@ -30,6 +30,7 @@ port/linux/test/python/*.py.o
 port/linux/test/python/__asset_lib_to_file_py_a.c
 port/linux/Release/
 port/linux/benchmark_result.json
+port/linux/google_benchmark/
 port/linux/gmon.out
 port/linux/package/pikascript/pikascript-api/
 port/linux/package/pikascript/pikascript-core/
