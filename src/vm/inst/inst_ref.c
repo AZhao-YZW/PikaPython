@@ -23,7 +23,7 @@
  */
 #include "inst_common.h"
 
-static Arg *_proxy_getattribute(PikaObj* host, char* name) {
+static Arg *_proxy_getattribute(PikaObj *host, char *name) {
 #if PIKA_NANO_ENABLE
     return NULL;
 #endif
@@ -34,7 +34,7 @@ static Arg *_proxy_getattribute(PikaObj* host, char* name) {
     return NULL;
 }
 
-static Arg *_proxy_getattr(PikaObj* host, char* name) {
+static Arg *_proxy_getattr(PikaObj *host, char *name) {
 #if PIKA_NANO_ENABLE
     return NULL;
 #endif
@@ -47,12 +47,12 @@ static Arg *_proxy_getattr(PikaObj* host, char* name) {
 
 Arg *vm_inst_handler_REF(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg)
 {
-    PikaObj* oHost = NULL;
-    char* arg_path = data;
-    char* arg_name = strPointToLastToken(arg_path, '.');
+    PikaObj *oHost = NULL;
+    char *arg_path = data;
+    char *arg_name = strPointToLastToken(arg_path, '.');
     pika_bool is_temp = pika_false;
     pika_bool is_alloc = pika_false;
-    PikaObj* oBuiltins = NULL;
+    PikaObj *oBuiltins = NULL;
 
     switch (data[0]) {
         case 'T':

@@ -26,7 +26,7 @@
 Arg *vm_inst_handler_GLB(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg)
 {
     Arg *global_list_buff = NULL;
-    char* global_list = args_getStr(vm->locals->list, "@g");
+    char *global_list = args_getStr(vm->locals->list, "@g");
     /* create new global_list */
     if (NULL == global_list) {
         args_setStr(vm->locals->list, "@g", data);

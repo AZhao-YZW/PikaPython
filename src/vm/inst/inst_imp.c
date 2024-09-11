@@ -27,7 +27,7 @@
 Arg *vm_inst_handler_IMP(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg)
 {
     Args buffs = {0};
-    char* sModuleNameRedirect = NULL;
+    char *sModuleNameRedirect = NULL;
     if (NULL == data) {
         goto __exit;
     }
@@ -39,7 +39,7 @@ Arg *vm_inst_handler_IMP(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_re
     if (obj_isArgExist(self, data)) {
         goto __exit;
     }
-    extern volatile PikaObj* __pikaMain;
+    extern volatile PikaObj *__pikaMain;
     /* the module is already imported to root object, import it to self. */
     if (obj_isArgExist((PikaObj*)__pikaMain, data)) {
         obj_setArg(self, data, obj_getArg((PikaObj*)__pikaMain, data));
@@ -47,7 +47,7 @@ Arg *vm_inst_handler_IMP(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_re
     }
     if (NULL == sModuleNameRedirect) {
         /* find cmodule in root object */
-        char* cmodule_try = strsGetFirstToken(&buffs, data, '.');
+        char *cmodule_try = strsGetFirstToken(&buffs, data, '.');
         if (obj_isArgExist((PikaObj*)__pikaMain, cmodule_try)) {
             obj_setArg(self, cmodule_try,
                        obj_getArg((PikaObj*)__pikaMain, cmodule_try));

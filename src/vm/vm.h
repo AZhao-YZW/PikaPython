@@ -24,10 +24,8 @@
 #ifndef __VM_H__
 #define __VM_H__
 
-#include "dataArg.h"
+#include "dataArgs.h"
 #include "PikaPlatform.h"
-
-void poiner_set_NULL(void **p);
-void pika_event_not_enable(void);
+#include "PikaObj.h"
 
 #endif

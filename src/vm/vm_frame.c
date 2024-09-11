@@ -21,17 +21,19 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#include "frame.h"
+#include "vm_frame.h"
 #include "dataArgs.h"
 #include "PikaVM.h"
+#include "inst.h"
+#include "bc_frame.h"
 
-void vm_frame_set_error_code(PikaVMFrame* vm, int8_t error_code)
+void vm_frame_set_error_code(PikaVMFrame *vm, int8_t error_code)
 {
     vm->vm_thread->error_code = error_code;
 }
 
-void _do_vsysOut(char* fmt, va_list args);
-void vm_frame_set_sys_out(PikaVMFrame* vm, char* fmt, ...)
+void _do_vsysOut(char *fmt, va_list args);
+void vm_frame_set_sys_out(PikaVMFrame *vm, char *fmt, ...)
 {
     pika_assert(NULL != vm);
     if (vm->vm_thread->error_code == 0) {
@@ -46,35 +48,35 @@ void vm_frame_set_sys_out(PikaVMFrame* vm, char* fmt, ...)
     va_end(args);
 }
 
-enum InstructIndex vm_frame_get_inst_with_offset(PikaVMFrame* vm, int32_t offset)
+enum InstructIndex vm_frame_get_inst_with_offset(PikaVMFrame *vm, int32_t offset)
 {
-    return instructUnit_getInstructIndex(PikaVMFrame_getInstructUnitWithOffset(vm, offset));
+    return inst_unit_get_inst_index(vm_frame_get_inst_unit_with_offset(vm, offset));
 }
 
-int vm_frame_get_blk_deepth_now(PikaVMFrame* vm)
+int vm_frame_get_blk_deepth_now(PikaVMFrame *vm)
 {
     /* support run byteCode */
-    InstructUnit* ins_unit = PikaVMFrame_getInstructNow(vm);
-    return instructUnit_getBlockDeepth(ins_unit);
+    InstructUnit *ins_unit = vm_frame_get_inst_now(vm);
+    return inst_unit_get_blk_deepth(ins_unit);
 }
 
 #if !PIKA_NANO_ENABLE
-char* vm_frame_get_const_with_offset(PikaVMFrame* vm, int32_t offset)
+char *vm_frame_get_const_with_offset(PikaVMFrame *vm, int32_t offset)
 {
-    return PikaVMFrame_getConstWithInstructUnit(
-        vm, PikaVMFrame_getInstructUnitWithOffset(vm, offset));
+    return vm_frame_get_const_with_inst_unit(
+        vm, vm_frame_get_inst_unit_with_offset(vm, offset));
 }
 #endif
 
-int vm_frame_get_invoke_deepth_now(PikaVMFrame* vm)
+int vm_frame_get_invoke_deepth_now(PikaVMFrame *vm)
 {
     /* support run byteCode */
-    InstructUnit* ins_unit = PikaVMFrame_getInstructNow(vm);
-    return instructUnit_getInvokeDeepth(ins_unit);
+    InstructUnit *ins_unit = vm_frame_get_inst_now(vm);
+    return inst_unit_get_invoke_deepth(ins_unit);
 }
 
 extern volatile VMState g_PikaVMState;
-pika_bool vm_frame_check_break_point(PikaVMFrame* vm)
+pika_bool vm_frame_check_break_point(PikaVMFrame *vm)
 {
 #if !PIKA_DEBUG_BREAK_POINT_MAX
     return pika_false;
@@ -85,12 +87,12 @@ pika_bool vm_frame_check_break_point(PikaVMFrame* vm)
     if (NULL == vm->bytecode_frame->name) {
         return pika_false;
     }
-    Hash module_hash = byteCodeFrame_getNameHash(vm->bytecode_frame);
+    Hash module_hash = bc_frame_get_name_hash(vm->bytecode_frame);
     return pika_debug_check_break_hash(module_hash, vm->pc);
 #endif
 }
 
-static int32_t vm_frame_get_jmp_back_addr_offset(PikaVMFrame* vm)
+static int32_t vm_frame_get_jmp_back_addr_offset(PikaVMFrame *vm)
 {
     int offset = 0;
     int blockDeepthGot = -1;
@@ -98,39 +100,39 @@ static int32_t vm_frame_get_jmp_back_addr_offset(PikaVMFrame* vm)
 
     /* find loop depth */
     while (1) {
-        offset -= instructUnit_getSize();
-        InstructUnit* insUnitThis =
-            PikaVMFrame_getInstructUnitWithOffset(vm, offset);
-        uint16_t invokeDeepth = instructUnit_getInvokeDeepth(insUnitThis);
-        enum InstructIndex ins = instructUnit_getInstructIndex(insUnitThis);
-        char* data = PikaVMFrame_getConstWithInstructUnit(vm, insUnitThis);
+        offset -= inst_unit_get_size();
+        InstructUnit *insUnitThis =
+            vm_frame_get_inst_unit_with_offset(vm, offset);
+        uint16_t invokeDeepth = inst_unit_get_invoke_deepth(insUnitThis);
+        enum InstructIndex ins = inst_unit_get_inst_index(insUnitThis);
+        char *data = vm_frame_get_const_with_inst_unit(vm, insUnitThis);
         if ((0 == invokeDeepth) && (PIKA_INS(JEZ) == ins) && data[0] == '2') {
-            InstructUnit* insUnitLast = PikaVMFrame_getInstructUnitWithOffset(
-                vm, offset - instructUnit_getSize());
+            InstructUnit *insUnitLast = vm_frame_get_inst_unit_with_offset(
+                vm, offset - inst_unit_get_size());
             enum InstructIndex insLast =
-                instructUnit_getInstructIndex(insUnitLast);
+                inst_unit_get_inst_index(insUnitLast);
             /* skip try stmt */
             if (PIKA_INS(GER) == insLast) {
                 continue;
             }
             /* skip inner break */
-            int blockDeepthThis = instructUnit_getBlockDeepth(insUnitThis);
+            int blockDeepthThis = inst_unit_get_blk_deepth(insUnitThis);
             if (blockDeepthThis >= blockDeepthNow) {
                 continue;
             }
-            blockDeepthGot = instructUnit_getBlockDeepth(insUnitThis);
+            blockDeepthGot = inst_unit_get_blk_deepth(insUnitThis);
             break;
         }
     }
 
     offset = 0;
     while (1) {
-        offset += instructUnit_getSize();
-        InstructUnit* insUnitThis =
-            PikaVMFrame_getInstructUnitWithOffset(vm, offset);
-        enum InstructIndex ins = instructUnit_getInstructIndex(insUnitThis);
-        char* data = PikaVMFrame_getConstWithInstructUnit(vm, insUnitThis);
-        int blockDeepthThis = instructUnit_getBlockDeepth(insUnitThis);
+        offset += inst_unit_get_size();
+        InstructUnit *insUnitThis =
+            vm_frame_get_inst_unit_with_offset(vm, offset);
+        enum InstructIndex ins = inst_unit_get_inst_index(insUnitThis);
+        char *data = vm_frame_get_const_with_inst_unit(vm, insUnitThis);
+        int blockDeepthThis = inst_unit_get_blk_deepth(insUnitThis);
         if ((blockDeepthThis == blockDeepthGot) && (PIKA_INS(JMP) == ins) &&
             data[0] == '-' && data[1] == '1') {
             return offset;
@@ -138,26 +140,26 @@ static int32_t vm_frame_get_jmp_back_addr_offset(PikaVMFrame* vm)
     }
 }
 
-int32_t vm_frame_get_jmp_addr_offset(PikaVMFrame* vm)
+int32_t vm_frame_get_jmp_addr_offset(PikaVMFrame *vm)
 {
     int offset = 0;
     /* run byte Code */
-    InstructUnit* this_ins_unit = PikaVMFrame_getInstructNow(vm);
-    int this_blk_depth = instructUnit_getBlockDeepth(this_ins_unit);
+    InstructUnit *this_ins_unit = vm_frame_get_inst_now(vm);
+    int this_blk_depth = inst_unit_get_blk_deepth(this_ins_unit);
     int8_t blockNum = 0;
-    int pc_max = (int)PikaVMFrame_getInstructArraySize(vm);
+    int pc_max = (int)vm_frame_get_inst_array_size(vm);
     if (vm->jmp > 0) {
         offset = 0;
         while (1) {
-            offset += instructUnit_getSize();
+            offset += inst_unit_get_size();
             /* reach the end */
             if (vm->pc + offset >= pc_max) {
                 break;
             }
-            this_ins_unit = PikaVMFrame_getInstructUnitWithOffset(vm, offset);
-            if (instructUnit_getIsNewLine(this_ins_unit)) {
+            this_ins_unit = vm_frame_get_inst_unit_with_offset(vm, offset);
+            if (inst_unit_get_is_new_line(this_ins_unit)) {
                 uint8_t blockDeepth =
-                    instructUnit_getBlockDeepth(this_ins_unit);
+                    inst_unit_get_blk_deepth(this_ins_unit);
                 if (blockDeepth <= this_blk_depth) {
                     blockNum++;
                 }
@@ -169,11 +171,11 @@ int32_t vm_frame_get_jmp_addr_offset(PikaVMFrame* vm)
     }
     if (vm->jmp < 0) {
         while (1) {
-            offset -= instructUnit_getSize();
-            this_ins_unit = PikaVMFrame_getInstructUnitWithOffset(vm, offset);
-            if (instructUnit_getIsNewLine(this_ins_unit)) {
+            offset -= inst_unit_get_size();
+            this_ins_unit = vm_frame_get_inst_unit_with_offset(vm, offset);
+            if (inst_unit_get_is_new_line(this_ins_unit)) {
                 uint8_t blockDeepth =
-                    instructUnit_getBlockDeepth(this_ins_unit);
+                    inst_unit_get_blk_deepth(this_ins_unit);
                 if (blockDeepth == this_blk_depth) {
                     blockNum--;
                 }
@@ -186,26 +188,26 @@ int32_t vm_frame_get_jmp_addr_offset(PikaVMFrame* vm)
     return offset;
 }
 
-int32_t vm_frame_get_break_addr_offset(PikaVMFrame* vm)
+int32_t vm_frame_get_break_addr_offset(PikaVMFrame *vm)
 {
     int32_t offset = vm_frame_get_jmp_back_addr_offset(vm);
     /* byteCode */
-    offset += instructUnit_getSize();
+    offset += inst_unit_get_size();
     return offset;
 }
 
 #if !PIKA_NANO_ENABLE
-int32_t vm_frame_get_raise_addr_offset(PikaVMFrame* vm)
+int32_t vm_frame_get_raise_addr_offset(PikaVMFrame *vm)
 {
     int offset = 0;
-    InstructUnit* ins_unit_now = PikaVMFrame_getInstructNow(vm);
+    InstructUnit *ins_unit_now = vm_frame_get_inst_now(vm);
     while (1) {
-        offset += instructUnit_getSize();
-        if (vm->pc + offset >= (int)PikaVMFrame_getInstructArraySize(vm)) {
+        offset += inst_unit_get_size();
+        if (vm->pc + offset >= (int)vm_frame_get_inst_array_size(vm)) {
             return 0;
         }
-        ins_unit_now = PikaVMFrame_getInstructUnitWithOffset(vm, offset);
-        enum InstructIndex ins = instructUnit_getInstructIndex(ins_unit_now);
+        ins_unit_now = vm_frame_get_inst_unit_with_offset(vm, offset);
+        enum InstructIndex ins = inst_unit_get_inst_index(ins_unit_now);
         if (PIKA_INS(NTR) == ins) {
             return offset;
         }
@@ -217,14 +219,14 @@ int32_t vm_frame_get_raise_addr_offset(PikaVMFrame* vm)
 }
 #endif
 
-int32_t vm_frame_get_continue_addr_offset(PikaVMFrame* vm)
+int32_t vm_frame_get_continue_addr_offset(PikaVMFrame *vm)
 {
     int32_t offset = vm_frame_get_jmp_back_addr_offset(vm);
     /* byteCode */
     return offset;
 }
 
-static void vm_frame_init_reg(PikaVMFrame* self)
+static void vm_frame_init_reg(PikaVMFrame *self)
 {
     for (uint8_t i = 0; i < PIKA_REGIST_SIZE; i++) {
         self->ireg[i] = pika_false;
@@ -270,7 +272,7 @@ static void _type_list_parse(FunctionArgsInfo* f)
     return;
 }
 
-static uint32_t _get_n_input_with_unpack(PikaVMFrame* vm, int n_used)
+static uint32_t _get_n_input_with_unpack(PikaVMFrame *vm, int n_used)
 {
 #if PIKA_NANO_ENABLE
     return vm_frame_get_input_arg_num(vm);
@@ -303,7 +305,7 @@ static uint32_t _get_n_input_with_unpack(PikaVMFrame* vm, int n_used)
                 stack_pushArg(&stack_tmp, arg_copy(call_arg));
                 goto __continue;
             }
-            PikaObj* obj = arg_getPtr(call_arg);
+            PikaObj *obj = arg_getPtr(call_arg);
             int len = obj_getSize(obj);
             for (int i_star_arg = len - 1; i_star_arg >= 0; i_star_arg--) {
                 Arg* arg_a =
@@ -315,8 +317,8 @@ static uint32_t _get_n_input_with_unpack(PikaVMFrame* vm, int n_used)
         }
         if (arg_getIsDoubleStarred(call_arg)) {
             pika_assert(arg_isObject(call_arg));
-            PikaObj* New_PikaStdData_Dict(Args * args);
-            PikaObj* obj = arg_getPtr(call_arg);
+            PikaObj *New_PikaStdData_Dict(Args * args);
+            PikaObj *obj = arg_getPtr(call_arg);
             pika_assert(obj->constructor == New_PikaStdData_Dict);
             Args* dict = _OBJ2DICT(obj);
             int i_item = args_getSize(dict);
@@ -348,7 +350,7 @@ static uint32_t _get_n_input_with_unpack(PikaVMFrame* vm, int n_used)
 #endif
 }
 
-static char* _kw_pos_to_default_all(FunctionArgsInfo* f, char* sArgName, int* argc,
+static char *_kw_pos_to_default_all(FunctionArgsInfo* f, char *sArgName, int* argc,
                                     Arg* argv[], Arg* aCall)
 {
 #if PIKA_NANO_ENABLE
@@ -395,7 +397,7 @@ static char* _kw_pos_to_default_all(FunctionArgsInfo* f, char* sArgName, int* ar
 }
 
 static int _kw_to_pos_one(FunctionArgsInfo* f,
-                          char* arg_name,
+                          char *arg_name,
                           int* argc,
                           Arg* argv[]) {
     if (f->kw == NULL) {
@@ -418,12 +420,12 @@ static void _kw_push(FunctionArgsInfo* f, Arg* call_arg, int i) {
     Hash kw_hash = call_arg->name_hash;
     char buff[32] = {0};
     _pikaDict_setVal(f->kw, call_arg);
-    char* sHash = fast_itoa(buff, kw_hash);
+    char *sHash = fast_itoa(buff, kw_hash);
     args_setStr(_OBJ2KEYS(f->kw), sHash, sHash);
     pikaDict_reverse(f->kw);
 }
 
-static void _load_call_arg(PikaVMFrame* vm, Arg* call_arg, FunctionArgsInfo* f, int* i,
+static void _load_call_arg(PikaVMFrame *vm, Arg* call_arg, FunctionArgsInfo* f, int* i,
                            int* argc, Arg* argv[])
 {
     /* load the kw arg */
@@ -439,7 +441,7 @@ static void _load_call_arg(PikaVMFrame* vm, Arg* call_arg, FunctionArgsInfo* f, 
             return;
         }
     }
-    char* arg_name = strPopLastToken(f->type_list, ',');
+    char *arg_name = strPopLastToken(f->type_list, ',');
     /* load default from kw */
     arg_name = _kw_pos_to_default_all(f, arg_name, argc, argv, call_arg);
     if (((char*)1) == arg_name) {
@@ -469,7 +471,7 @@ static void _kw_to_pos_all(FunctionArgsInfo* f, int* argc, Arg* argv[])
         return;
     }
     for (int i = 0; i < arg_num_need; i++) {
-        char* arg_name = strPopLastToken(f->type_list, ',');
+        char *arg_name = strPopLastToken(f->type_list, ',');
         pika_assert(f->kw != NULL);
         Arg* pos_arg = pikaDict_get(f->kw, arg_name);
         pika_assert(pos_arg != NULL);
@@ -489,15 +491,15 @@ static void _loadLocalsFromArgv(Args* locals, int argc, Arg* argv[])
 
 #define vars_or_keys_or_default (f.is_vars || f.is_keys || f.is_default)
 #define METHOD_TYPE_LIST_MAX_LEN PIKA_LINE_BUFF_SIZE * 2
-int vm_frame_load_args_from_method_arg(PikaVMFrame* vm, PikaObj* oMethodHost, Args* aLoclas,
-                                       Arg* aMethod, char* sMethodName, char* sProxyName, int iNumUsed)
+int vm_frame_load_args_from_method_arg(PikaVMFrame *vm, PikaObj *oMethodHost, Args* aLoclas,
+                                       Arg* aMethod, char *sMethodName, char *sProxyName, int iNumUsed)
 {
     int argc = 0;
     Arg** argv = (Arg**)pikaMalloc(sizeof(Arg*) * PIKA_ARG_NUM_MAX);
-    char* buffs1 = (char*)pikaMalloc(METHOD_TYPE_LIST_MAX_LEN);
-    char* buffs2 = (char*)pikaMalloc(METHOD_TYPE_LIST_MAX_LEN);
+    char *buffs1 = (char*)pikaMalloc(METHOD_TYPE_LIST_MAX_LEN);
+    char *buffs2 = (char*)pikaMalloc(METHOD_TYPE_LIST_MAX_LEN);
     FunctionArgsInfo f = {0};
-    char* type_list_buff = NULL;
+    char *type_list_buff = NULL;
     /* get method type list */
     f.type_list =
         methodArg_getTypeList(aMethod, buffs1, METHOD_TYPE_LIST_MAX_LEN);
@@ -599,7 +601,7 @@ int vm_frame_load_args_from_method_arg(PikaVMFrame* vm, PikaObj* oMethodHost, Ar
         type_list_buff = strCopy(buffs2, f.type_list);
         uint8_t n_typelist = strCountSign(type_list_buff, ',') + 1;
         for (int i = 0; i < n_typelist; i++) {
-            char* arg_def = strPopLastToken(type_list_buff, ',');
+            char *arg_def = strPopLastToken(type_list_buff, ',');
             if (arg_def[0] == '*' && arg_def[1] != '*') {
                 /* get variable tuple name */
                 /* skip the '*' */
@@ -641,7 +643,7 @@ int vm_frame_load_args_from_method_arg(PikaVMFrame* vm, PikaObj* oMethodHost, Ar
 /* only default */
 #if !PIKA_NANO_ENABLE
     if (strIsContain(f.type_list, '=')) {
-        char* arg_name = strPopLastToken(f.type_list, ',');
+        char *arg_name = strPopLastToken(f.type_list, ',');
         _kw_pos_to_default_all(&f, arg_name, &argc, argv, NULL);
     }
     /* load kw to pos */
@@ -661,14 +663,14 @@ int vm_frame_load_args_from_method_arg(PikaVMFrame* vm, PikaObj* oMethodHost, Ar
             f.kw_dict_name = "__kwargs";
         }
         /* load kw dict */
-        PikaObj* New_PikaStdData_Dict(Args * args);
+        PikaObj *New_PikaStdData_Dict(Args * args);
         Arg* argi = arg_setPtr(NULL, f.kw_dict_name, ARG_TYPE_OBJECT, f.kw);
         argv[argc++] = argi;
     }
 
     /* load 'self' as the first arg when call object method */
     if (f.method_type == ARG_TYPE_METHOD_OBJECT) {
-        PikaObj* method_self = NULL;
+        PikaObj *method_self = NULL;
         method_self = methodArg_getHostObj(aMethod);
         if (NULL == method_self) {
             method_self = oMethodHost;
@@ -686,29 +688,29 @@ __exit:
     return f.n_arg;
 }
 
-uint32_t vm_frame_get_input_arg_num(PikaVMFrame* vm)
+uint32_t vm_frame_get_input_arg_num(PikaVMFrame *vm)
 {
-    InstructUnit* ins_unit_now = PikaVMFrame_getInstructNow(vm);
-    uint8_t invoke_deepth_this = instructUnit_getInvokeDeepth(ins_unit_now);
+    InstructUnit *ins_unit_now = vm_frame_get_inst_now(vm);
+    uint8_t invoke_deepth_this = inst_unit_get_invoke_deepth(ins_unit_now);
     int32_t pc_this = vm->pc;
     uint32_t num = 0;
     while (1) {
         ins_unit_now--;
-        pc_this -= instructUnit_getSize();
-        uint8_t invode_deepth = instructUnit_getInvokeDeepth(ins_unit_now);
+        pc_this -= inst_unit_get_size();
+        uint8_t invode_deepth = inst_unit_get_invoke_deepth(ins_unit_now);
         if (pc_this < 0) {
             break;
         }
         if (invode_deepth == invoke_deepth_this + 1) {
-            if (instructUnit_getInstructIndex(ins_unit_now) == PIKA_INS(OUT)) {
+            if (inst_unit_get_inst_index(ins_unit_now) == PIKA_INS(OUT)) {
                 continue;
             }
-            if (instructUnit_getInstructIndex(ins_unit_now) == PIKA_INS(NLS)) {
+            if (inst_unit_get_inst_index(ins_unit_now) == PIKA_INS(NLS)) {
                 continue;
             }
             num++;
         }
-        if (instructUnit_getIsNewLine(ins_unit_now)) {
+        if (inst_unit_get_is_new_line(ins_unit_now)) {
             break;
         }
         if (invode_deepth <= invoke_deepth_this) {
@@ -718,13 +720,13 @@ uint32_t vm_frame_get_input_arg_num(PikaVMFrame* vm)
     return num;
 }
 
-PIKA_WEAK void pika_hook_unused_stack_arg(PikaVMFrame* vm, Arg* arg) {
+PIKA_WEAK void pika_hook_unused_stack_arg(PikaVMFrame *vm, Arg* arg) {
     if (vm->in_repl) {
         arg_print(arg, pika_true, "\r\n");
     }
 }
 
-void vm_frame_solve_unused_stack(PikaVMFrame* vm)
+void vm_frame_solve_unused_stack(PikaVMFrame *vm)
 {
     uint8_t top = stack_getTop(&(vm->stack));
     for (int i = 0; i < top; i++) {
@@ -743,10 +745,10 @@ void vm_frame_solve_unused_stack(PikaVMFrame* vm)
     }
 }
 
-PikaVMFrame* vm_frame_create(VMParameters* locals, VMParameters* globals, ByteCodeFrame* bytecode_frame,
+PikaVMFrame *vm_frame_create(VMParameters* locals, VMParameters* globals, ByteCodeFrame *bytecode_frame,
                              int32_t pc, PikaVMThread* vm_thread)
 {
-    PikaVMFrame* vm = (PikaVMFrame*)pikaMalloc(sizeof(PikaVMFrame));
+    PikaVMFrame *vm = (PikaVMFrame*)pikaMalloc(sizeof(PikaVMFrame));
     vm->bytecode_frame = bytecode_frame;
     vm->locals = locals;
     vm->globals = globals;

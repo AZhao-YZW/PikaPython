@@ -26,7 +26,7 @@
 Arg *vm_inst_handler_NLS(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg)
 {
 #if PIKA_BUILTIN_STRUCT_ENABLE
-    PikaObj* list = vm->oreg[vm_frame_get_invoke_deepth_now(vm)];
+    PikaObj *list = vm->oreg[vm_frame_get_invoke_deepth_now(vm)];
     vm->oreg[vm_frame_get_invoke_deepth_now(vm)] = NULL;
     return arg_newObj(list);
 #else

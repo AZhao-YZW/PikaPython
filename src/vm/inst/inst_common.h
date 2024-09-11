@@ -26,16 +26,21 @@
 
 #include "dataArgs.h"
 #include "PikaVM.h"
-#include "frame.h"
+#include "vm_frame.h"
+#include "inst_proc.h"
+
+typedef struct {
+    PikaObj *lreg[PIKA_REGIST_SIZE];
+} VMLocals;
 
 int arg_getLen(Arg* self);
-Arg *_vm_get(PikaVMFrame* vm, PikaObj* self, Arg *aKey, Arg *aObj);
-Arg* _vm_create_list_or_tuple(PikaObj* self, PikaVMFrame* vm, pika_bool is_list);
-void locals_set_lreg(PikaObj* self, char* name, PikaObj* obj);
-pika_bool locals_check_lreg(char* data);
-void locals_del_lreg(PikaObj* self, char* name);
-PikaObj* locals_get_lreg(PikaObj* self, char* name);
-PikaObj* locals_new(Args* args);
-void locals_deinit(PikaObj* self);
+Arg *_vm_get(PikaVMFrame *vm, PikaObj *self, Arg *aKey, Arg *aObj);
+Arg* _vm_create_list_or_tuple(PikaObj *self, PikaVMFrame *vm, pika_bool is_list);
+void locals_set_lreg(PikaObj *self, char *name, PikaObj *obj);
+pika_bool locals_check_lreg(char *data);
+void locals_del_lreg(PikaObj *self, char *name);
+PikaObj *locals_get_lreg(PikaObj *self, char *name);
+PikaObj *locals_new(Args* args);
+void locals_deinit(PikaObj *self);
 
 #endif

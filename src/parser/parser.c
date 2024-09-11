@@ -260,103 +260,6 @@ static uint8_t Parser_checkIsDocstring(char* line,
     return bIsDocstring;
 }
 
-ByteCodeFrame* byteCodeFrame_appendFromAsm(ByteCodeFrame* self, char* sPikaAsm) {
-    Asmer asmer = {
-        .asm_code = sPikaAsm,
-        .block_deepth_now = 0,
-        .is_new_line = 0,
-        .line_pointer = sPikaAsm,
-    };
-    uint16_t uConstPoolOffset;
-    uint16_t uExistOffset;
-    for (int i = 0; i < strCountSign(sPikaAsm, '\n'); i++) {
-        Args buffs = {0};
-        char* sLine = strsGetLine(&buffs, asmer.line_pointer);
-        char* sData = NULL;
-        char sIns[4] = "";
-        char sInvokeDeepth[3] = "";
-        uint8_t uSpaceNum = 0;
-        uint8_t iInvokeDeepth = 0;
-        uint8_t iInsStr = 0;
-        Arg* aLineBuff = arg_newStr(sLine);
-        strsDeinit(&buffs);
-        sLine = arg_getStr(aLineBuff);
-        InstructUnit ins_unit = {0};
-        /* remove '\r' */
-        if (sLine[strGetSize(sLine) - 1] == '\r') {
-            sLine[strGetSize(sLine) - 1] = 0;
-        }
-        /* process block depth flag*/
-        if ('B' == sLine[0]) {
-            asmer.block_deepth_now = fast_atoi(sLine + 1);
-            asmer.is_new_line = 1;
-            goto __next_line;
-        }
-
-        /* process each ins */
-
-        /* get constPool offset */
-        uConstPoolOffset = 0;
-
-        for (int i = 0; i < (int)strGetSize(sLine); i++) {
-            if (uSpaceNum < 2) {
-                if (sLine[i] == ' ') {
-                    uSpaceNum++;
-                    if (uSpaceNum == 2) {
-                        sData = sLine + i + 1;
-                        break;
-                    }
-                    continue;
-                }
-            }
-            if (uSpaceNum == 0) {
-                sInvokeDeepth[iInvokeDeepth++] = sLine[i];
-                continue;
-            }
-            if (uSpaceNum == 1) {
-                sIns[iInsStr++] = sLine[i];
-                continue;
-            }
-        }
-
-        uExistOffset = constPool_getOffsetByData(&(self->const_pool), sData);
-
-        /* get const offset */
-        if (strEqu(sData, "")) {
-            /* not need const value */
-            uConstPoolOffset = 0;
-        } else if (65535 == uExistOffset) {
-            /* push new const value */
-            uConstPoolOffset = constPool_getLastOffset(&(self->const_pool));
-            /* load const to const pool buff */
-            constPool_append(&(self->const_pool), sData);
-        } else {
-            /* use exist const value */
-            uConstPoolOffset = uExistOffset;
-        }
-
-        iInvokeDeepth = fast_atoi(sInvokeDeepth);
-        /* load Asm to byte code unit */
-        instructUnit_setBlockDeepth(&ins_unit, asmer.block_deepth_now);
-        instructUnit_setInvokeDeepth(&ins_unit, iInvokeDeepth);
-        instructUnit_setConstPoolIndex(&ins_unit, uConstPoolOffset);
-        instructUnit_setInstruct(&ins_unit, pikaVM_getInstructFromAsm(sIns));
-        if (asmer.is_new_line) {
-            instructUnit_setIsNewLine(&ins_unit, 1);
-            asmer.is_new_line = 0;
-        }
-
-        /* append instructUnit to instructArray */
-        instructArray_append(&(self->instruct_array), &ins_unit);
-
-    __next_line:
-        /* point to next line */
-        asmer.line_pointer += strGetLineSize(asmer.line_pointer) + 1;
-        arg_deinit(aLineBuff);
-    }
-    return self;
-}
-
 char* parser_lines2Target(Parser* self, char* sPyLines) {
     Arg* aBackendCode = arg_newStr("");
     Arg* aLineConnection = arg_newStr("");
@@ -501,7 +404,7 @@ char* parser_lines2Target(Parser* self, char* sPyLines) {
 
         if (self->is_gen_bytecode) {
             /* store ByteCode */
-            byteCodeFrame_appendFromAsm(self->bytecode_frame, sBackendCode);
+            bc_frame_append_from_asm(self->bytecode_frame, sBackendCode);
         } else {
             /* store ASM */
             aBackendCode = arg_strAppend(aBackendCode, sBackendCode);
@@ -550,7 +453,7 @@ char* parser_lines2Doc(Parser* self, char* sPyLines) {
     return parser_lines2Target(self, sPyLines);
 }
 
-PIKA_RES pika_lines2Bytes(ByteCodeFrame* bf, char* py_lines) {
+PIKA_RES pika_lines2Bytes(ByteCodeFrame *bf, char* py_lines) {
 #if PIKA_BYTECODE_ONLY_ENABLE
     pika_platform_printf(
         "Error: In bytecode-only mode, can not parse python script.\r\n");
@@ -1052,19 +955,19 @@ __exit:
 
 char* pika_lines2Array(char* sLines) {
     ByteCodeFrame bytecode_frame;
-    byteCodeFrame_init(&bytecode_frame);
+    bc_frame_init(&bytecode_frame);
     pika_lines2Bytes(&bytecode_frame, sLines);
     /* do something */
-    byteCodeFrame_print(&bytecode_frame);
+    bc_frame_print(&bytecode_frame);
 
     pika_platform_printf("\n\n/* clang-format off */\n");
     pika_platform_printf("PIKA_PYTHON(\n");
     pika_platform_printf("%s\n", sLines);
     pika_platform_printf(")\n");
     pika_platform_printf("/* clang-format on */\n");
-    byteCodeFrame_printAsArray(&bytecode_frame);
+    bc_frame_print_as_array(&bytecode_frame);
     /* deinit */
-    byteCodeFrame_deinit(&bytecode_frame);
+    bc_frame_deinit(&bytecode_frame);
     pika_platform_printf("\n\n");
     return NULL;
 }

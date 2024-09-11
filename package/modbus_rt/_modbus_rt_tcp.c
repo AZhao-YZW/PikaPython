@@ -11,6 +11,7 @@
  *
  */
 #include "PikaObj.h"
+#include "PikaVM.h"
 #include "PikaStdData_List.h"
 #include "TinyObj.h"
 #include "_modbus_rt__tcp.h"

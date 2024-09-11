@@ -1,10 +1,7 @@
 /*
- * This file is part of the PikaPython project.
- * http://github.com/pikastech/pikapython
- *
  * MIT License
  *
- * Copyright (c) 2021 lyon liang6516@outlook.com
+ * Copyright (c) 2024 azhao 余钊炜 yuzhaowei2002@outlook.com
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,21 +21,25 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifdef __cplusplus
-extern "C" {
-#endif
+#ifndef __BC_FRAME_H__
+#define __BC_FRAME_H__
 
-#ifndef __PIKA_PARSER__H
-#define __PIKA_PARSER__H
-
-#include "PikaVM.h"
+#include "dataArgs.h"
 #include "PikaObj.h"
 
-PIKA_RES pika_lines2Bytes(ByteCodeFrame *bf, char* py_lines);
-char* pika_lines2Asm(Args* outBuffs, char* multiLine);
+typedef struct Asmer {
+    char *asm_code;
+    uint8_t block_deepth_now;
+    uint8_t is_new_line;
+    char *line_pointer;
+} Asmer;
 
-#endif
+void bc_frame_load_bytecode(ByteCodeFrame *self, uint8_t* bytes,
+                                    char *name, pika_bool is_const);
+ByteCodeFrame *_cache_bcf_fn(PikaObj *self, char *py_lines);
+ByteCodeFrame *_cache_bcf_fn_bc(PikaObj *self, uint8_t* bytecode);
+Hash bc_frame_get_name_hash(ByteCodeFrame *bcframe);
+void bc_frame_set_name(ByteCodeFrame *self, char *name);
+size_t bc_frame_get_size(ByteCodeFrame *bf);
 
-#ifdef __cplusplus
-}
 #endif

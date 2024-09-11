@@ -29,7 +29,7 @@ int arg_getLen(Arg* self)
         return obj_getSize(arg_getPtr(self));
     }
     if (arg_getType(self) == ARG_TYPE_STRING) {
-        int strGetSizeUtf8(char* str);
+        int strGetSizeUtf8(char *str);
         return strGetSizeUtf8(arg_getStr(self));
     }
     if (arg_getType(self) == ARG_TYPE_BYTES) {
@@ -38,7 +38,7 @@ int arg_getLen(Arg* self)
     return -1;
 }
 
-Arg *_vm_get(PikaVMFrame* vm, PikaObj* self, Arg *aKey, Arg *aObj)
+Arg *_vm_get(PikaVMFrame *vm, PikaObj *self, Arg *aKey, Arg *aObj)
 {
     ArgType eType = arg_getType(aObj);
     Arg *aObjNew = NULL;
@@ -67,7 +67,7 @@ Arg *_vm_get(PikaVMFrame* vm, PikaObj* self, Arg *aKey, Arg *aObj)
         aObjNew = arg_newObj(_arg_to_obj(aObj, &bIsTemp));
         eType = arg_getType(aObjNew);
 #else
-        char* sPyload = arg_getStr(aObj);
+        char *sPyload = arg_getStr(aObj);
         char sCharBuff[] = " ";
         if (iIndex < 0) {
             iIndex = strGetSize(sPyload) + iIndex;
@@ -83,7 +83,7 @@ Arg *_vm_get(PikaVMFrame* vm, PikaObj* self, Arg *aKey, Arg *aObj)
         return arg_newInt(sByteBuff[0]);
     }
     if (argType_isObject(eType)) {
-        PikaObj* oArg = NULL;
+        PikaObj *oArg = NULL;
         Arg *aRes = NULL;
         if (aObjNew != NULL) {
             oArg = arg_getPtr(aObjNew);
@@ -128,16 +128,16 @@ Arg *_vm_get(PikaVMFrame* vm, PikaObj* self, Arg *aKey, Arg *aObj)
 }
 
 #if PIKA_BUILTIN_STRUCT_ENABLE
-PikaObj* New_PikaStdData_List(Args* args);
-PikaObj* New_PikaStdData_Tuple(Args* args);
+PikaObj *New_PikaStdData_List(Args* args);
+PikaObj *New_PikaStdData_Tuple(Args* args);
 #endif
 
-Arg* _vm_create_list_or_tuple(PikaObj* self, PikaVMFrame* vm, pika_bool is_list)
+Arg* _vm_create_list_or_tuple(PikaObj *self, PikaVMFrame *vm, pika_bool is_list)
 {
 #if PIKA_BUILTIN_STRUCT_ENABLE
     NewFun constructor = is_list ? New_PikaStdData_List : New_PikaStdData_Tuple;
     uint32_t n_arg = vm_frame_get_input_arg_num(vm);
-    PikaObj* list = newNormalObj(constructor);
+    PikaObj *list = newNormalObj(constructor);
     pikaList_init(list);
     Stack stack = {0};
     stack_init(&stack);
@@ -159,14 +159,14 @@ Arg* _vm_create_list_or_tuple(PikaObj* self, PikaVMFrame* vm, pika_bool is_list)
 #endif
 }
 
-static uint8_t _getLRegIndex(char* data)
+static uint8_t _getLRegIndex(char *data)
 {
     return data[2] - '0';
 }
 
 static void VMLocals_delLReg(VMLocals* self, uint8_t index)
 {
-    PikaObj* obj = self->lreg[index];
+    PikaObj *obj = self->lreg[index];
     if (NULL != obj) {
         obj_enableGC(obj);
         self->lreg[index] = NULL;
@@ -174,7 +174,7 @@ static void VMLocals_delLReg(VMLocals* self, uint8_t index)
     }
 }
 
-void locals_del_lreg(PikaObj* self, char* name)
+void locals_del_lreg(PikaObj *self, char *name)
 {
     if (!locals_check_lreg(name)) {
         return;
@@ -190,7 +190,7 @@ static void VMLocals_clearReg(VMLocals* self) {
     }
 }
 
-PikaObj* locals_get_lreg(PikaObj* self, char* name)
+PikaObj *locals_get_lreg(PikaObj *self, char *name)
 {
     /* get method host obj from reg */
     if (!locals_check_lreg(name)) {
@@ -201,9 +201,9 @@ PikaObj* locals_get_lreg(PikaObj* self, char* name)
     return locals->lreg[reg_index];
 }
 
-PikaObj* locals_new(Args* args)
+PikaObj *locals_new(Args* args)
 {
-    PikaObj* self = New_PikaObj();
+    PikaObj *self = New_PikaObj();
     self->constructor = locals_new;
 #if PIKA_KERNAL_DEBUG_ENABLE
     self->name = "Locals";
@@ -211,7 +211,7 @@ PikaObj* locals_new(Args* args)
     return self;
 }
 
-void locals_deinit(PikaObj* self)
+void locals_deinit(PikaObj *self)
 {
     VMLocals* tLocals = obj_getStruct(self, "@l");
     if (NULL == tLocals) {
@@ -220,7 +220,7 @@ void locals_deinit(PikaObj* self)
     VMLocals_clearReg(tLocals);
 }
 
-pika_bool locals_check_lreg(char* data)
+pika_bool locals_check_lreg(char *data)
 {
     if ((data[0] == '$') && (data[1] == 'l') && (data[2] >= '0') &&
         (data[2] <= '9')) {
@@ -229,12 +229,12 @@ pika_bool locals_check_lreg(char* data)
     return pika_false;
 }
 
-static void VMLocals_setLReg(VMLocals* self, uint8_t index, PikaObj* obj) {
+static void VMLocals_setLReg(VMLocals* self, uint8_t index, PikaObj *obj) {
     obj_refcntInc(obj);
     self->lreg[index] = obj;
 }
 
-void locals_set_lreg(PikaObj* self, char* name, PikaObj* obj)
+void locals_set_lreg(PikaObj *self, char *name, PikaObj *obj)
 {
     if (!locals_check_lreg(name)) {
         return;

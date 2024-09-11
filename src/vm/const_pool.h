@@ -21,31 +21,32 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifndef __FRAME_H__
-#define __FRAME_H__
+#ifndef __CONST_POOL_H__
+#define __CONST_POOL_H__
 
 #include "dataArgs.h"
 #include "PikaVM.h"
 
-void vm_frame_set_error_code(PikaVMFrame* vm, int8_t error_code);
-void vm_frame_set_sys_out(PikaVMFrame* vm, char* fmt, ...);
-enum InstructIndex vm_frame_get_inst_with_offset(PikaVMFrame* vm, int32_t offset);
-int vm_frame_get_blk_deepth_now(PikaVMFrame* vm);
-int vm_frame_get_invoke_deepth_now(PikaVMFrame* vm);
-pika_bool vm_frame_check_break_point(PikaVMFrame* vm);
-int32_t vm_frame_get_jmp_addr_offset(PikaVMFrame* vm);
-int32_t vm_frame_get_break_addr_offset(PikaVMFrame* vm);
-int32_t vm_frame_get_continue_addr_offset(PikaVMFrame* vm);
-int vm_frame_load_args_from_method_arg(PikaVMFrame* vm, PikaObj* oMethodHost, Args* aLoclas,
-                                       Arg* aMethod, char* sMethodName, char* sProxyName, int iNumUsed);
-uint32_t vm_frame_get_input_arg_num(PikaVMFrame* vm);
-void vm_frame_solve_unused_stack(PikaVMFrame* vm);
-PikaVMFrame* vm_frame_create(VMParameters* locals, VMParameters* globals, ByteCodeFrame* bytecode_frame,
-                             int32_t pc, PikaVMThread* vm_thread);
+static inline void *const_pool_get_start(ConstPool *self)
+{
+    return self->content_start;
+}
 
-#if !PIKA_NANO_ENABLE
-char* vm_frame_get_const_with_offset(PikaVMFrame* vm, int32_t offset);
-int32_t vm_frame_get_raise_addr_offset(PikaVMFrame* vm);
-#endif
+static inline int const_pool_get_last_offset(ConstPool *self)
+{
+    return self->size;
+}
+
+static inline char *const_pool_get_by_offset(ConstPool *self, int offset)
+{
+    return (char*)((uintptr_t)const_pool_get_start(self) + (uintptr_t)offset);
+}
+
+void const_pool_print(ConstPool *self);
+uint16_t const_pool_get_offset_by_data(ConstPool *self, char *data);
+void const_pool_get_print_as_array(ConstPool *self);
+void const_pool_init(ConstPool *self);
+void const_pool_deinit(ConstPool *self);
+void const_pool_append(ConstPool *self, char *content);
 
 #endif

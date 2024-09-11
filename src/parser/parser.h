@@ -44,19 +44,12 @@ typedef struct Parser {
     int blk_depth_origin;
     char *(*ast_to_target)(struct Parser* self, AST* ast);
     bool is_gen_bytecode;
-    ByteCodeFrame* bytecode_frame;
+    ByteCodeFrame *bytecode_frame;
     uint8_t this_blk_depth;
     uint32_t label_pc;
 } Parser;
 
 typedef char* (*fn_parser_Lines2Target)(Parser* self, char* sPyLines);
-
-typedef struct Asmer {
-    char* asm_code;
-    uint8_t block_deepth_now;
-    uint8_t is_new_line;
-    char* line_pointer;
-} Asmer;
 
 char* parser_remove_comment(char* line);
 Parser* parser_create(void);

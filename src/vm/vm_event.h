@@ -1,10 +1,7 @@
 /*
- * This file is part of the PikaPython project.
- * http://github.com/pikastech/pikapython
- *
  * MIT License
  *
- * Copyright (c) 2021 lyon liang6516@outlook.com
+ * Copyright (c) 2024 azhao 余钊炜 yuzhaowei2002@outlook.com
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -24,21 +21,9 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  * DEALINGS IN THE SOFTWARE.
  */
-#ifdef __cplusplus
-extern "C" {
-#endif
+#ifndef __VM_EVENT_H__
+#define __VM_EVENT_H__
 
-#ifndef __PIKA_PARSER__H
-#define __PIKA_PARSER__H
+int vm_event_get_vm_cnt(void);
 
-#include "PikaVM.h"
-#include "PikaObj.h"
-
-PIKA_RES pika_lines2Bytes(ByteCodeFrame *bf, char* py_lines);
-char* pika_lines2Asm(Args* outBuffs, char* multiLine);
-
-#endif
-
-#ifdef __cplusplus
-}
 #endif

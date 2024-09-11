@@ -71,7 +71,7 @@ void PikaStdData_List_append(PikaObj* self, Arg* arg);
 void PikaStdData_Dict_set(PikaObj* self, char* key, Arg* value);
 void PikaStdData_Dict___init__(PikaObj* self);
 void _mem_cache_deinit(void);
-void _VMEvent_deinit(void);
+void vm_event_deinit(void);
 void pikaGC_markObj(PikaGC* gc, PikaObj* self);
 void _pikaGC_mark(PikaGC* gc);
 void obj_dump(PikaObj* self);
@@ -184,7 +184,7 @@ int32_t obj_deinit(PikaObj* self) {
         bisRoot = pika_true;
         _mem_cache_deinit();
 #if PIKA_EVENT_ENABLE
-        _VMEvent_deinit();
+        vm_event_deinit();
 #endif
         if (NULL != g_PikaObjState.helpModulesCmodule) {
             arg_deinit(g_PikaObjState.helpModulesCmodule);
@@ -198,7 +198,7 @@ int32_t obj_deinit(PikaObj* self) {
         shConfig_deinit((ShellConfig*)&g_REPL);
 #if __linux
         disable_raw_mode();
-        pika_GIL_deinit();
+        vm_gil_deinit();
 #endif
     }
     return ret;
@@ -974,7 +974,7 @@ char* methodArg_getName(Arg* method_arg, char* buffs, size_t size) {
     return res;
 }
 
-char* _find_super_class_name(ByteCodeFrame* bcframe, int32_t pc_start);
+char* _find_super_class_name(ByteCodeFrame *bcframe, int32_t pc_start);
 Arg* methodArg_super(Arg* aThis, NativeProperty** p_prop) {
     Arg* aSuper = NULL;
     PikaObj* builtins = NULL;
@@ -987,7 +987,7 @@ Arg* methodArg_super(Arg* aThis, NativeProperty** p_prop) {
     if (type == ARG_TYPE_METHOD_CONSTRUCTOR) {
         builtins = obj_getBuiltins();
         MethodProp* method_store = (MethodProp*)arg_getContent(aThis);
-        ByteCodeFrame* bcframe = method_store->bytecode_frame;
+        ByteCodeFrame *bcframe = method_store->bytecode_frame;
         int32_t pc = (uintptr_t)method_store->ptr -
                      (uintptr_t)bcframe->instruct_array.content_start;
         char* sSuper = _find_super_class_name(bcframe, pc);
@@ -1029,7 +1029,7 @@ Method obj_getNativeMethod(PikaObj* self, char* method_name) {
     return res;
 }
 
-ByteCodeFrame* methodArg_getBytecodeFrame(Arg* method_arg) {
+ByteCodeFrame *methodArg_getBytecodeFrame(Arg* method_arg) {
     MethodProp* method_store = (MethodProp*)arg_getContent(method_arg);
     return method_store->bytecode_frame;
 }
@@ -1108,7 +1108,7 @@ static int32_t __class_defineMethodWithType(PikaObj* self,
                                             Method method_ptr,
                                             ArgType method_type,
                                             PikaObj* def_context,
-                                            ByteCodeFrame* bytecode_frame) {
+                                            ByteCodeFrame *bytecode_frame) {
     int32_t res = 0;
     Args buffs = {0};
     PikaObj* method_host = self;
@@ -1157,7 +1157,7 @@ int32_t class_defineRunTimeConstructor(PikaObj* self,
                                        char* declareation,
                                        Method methodPtr,
                                        PikaObj* def_context,
-                                       ByteCodeFrame* bytecode_frame) {
+                                       ByteCodeFrame *bytecode_frame) {
     return __class_defineMethodWithType(self, declareation, NULL, NULL,
                                         methodPtr, ARG_TYPE_METHOD_CONSTRUCTOR,
                                         def_context, bytecode_frame);
@@ -1168,7 +1168,7 @@ int32_t class_defineObjectMethod(PikaObj* self,
                                  char* declareation,
                                  Method methodPtr,
                                  PikaObj* def_context,
-                                 ByteCodeFrame* bytecode_frame) {
+                                 ByteCodeFrame *bytecode_frame) {
     return __class_defineMethodWithType(self, declareation, NULL, NULL,
                                         methodPtr, ARG_TYPE_METHOD_OBJECT,
                                         def_context, bytecode_frame);
@@ -1179,7 +1179,7 @@ int32_t class_defineStaticMethod(PikaObj* self,
                                  char* declareation,
                                  Method methodPtr,
                                  PikaObj* def_context,
-                                 ByteCodeFrame* bytecode_frame) {
+                                 ByteCodeFrame *bytecode_frame) {
     return __class_defineMethodWithType(self, declareation, NULL, NULL,
                                         methodPtr, ARG_TYPE_METHOD_STATIC,
                                         def_context, bytecode_frame);
@@ -1831,9 +1831,9 @@ static void _save_file(char* file_name, uint8_t* buff, size_t size) {
 }
 
 char _await_getchar(sh_getchar fn_getchar) {
-    pika_GIL_EXIT();
+    vm_gil_exit();
     char ret = fn_getchar();
-    pika_GIL_ENTER();
+    vm_gil_enter();
     return ret;
 }
 
@@ -2560,10 +2560,10 @@ PikaObj* obj_importModuleWithByteCode(PikaObj* self,
 
 PikaObj* obj_importModuleWithByteCodeFrame(PikaObj* self,
                                            char* name,
-                                           ByteCodeFrame* byteCode_frame) {
+                                           ByteCodeFrame *bc_frame) {
     PikaObj* New_PikaStdLib_SysObj(Args * args);
     obj_newDirectObj(self, name, New_PikaStdLib_SysObj);
-    pikaVM_runByteCodeFrame(obj_getObj(self, name), byteCode_frame);
+    pikaVM_runByteCodeFrame(obj_getObj(self, name), bc_frame);
     return self;
 }
 
@@ -2868,9 +2868,9 @@ void pika_debug_bytes(uint8_t* buff, size_t len) {
 }
 
 static void _thread_event(void* arg) {
-    pika_assert(_VM_is_first_lock());
+    pika_assert(vm_gil_is_first_lock());
     while (1) {
-        pika_GIL_ENTER();
+        vm_gil_enter();
 #if PIKA_EVENT_ENABLE
         if (g_PikaVMState.event_thread_exit) {
             g_PikaVMState.event_thread_exit_done = 1;
@@ -2878,10 +2878,10 @@ static void _thread_event(void* arg) {
         }
 #endif
         _VMEvent_pickupEvent();
-        pika_GIL_EXIT();
+        vm_gil_exit();
         pika_platform_thread_yield();
     }
-    pika_GIL_EXIT();
+    vm_gil_exit();
 }
 
 PIKA_RES _do_pika_eventListener_send(PikaEventListener* self,
@@ -2894,9 +2894,9 @@ PIKA_RES _do_pika_eventListener_send(PikaEventListener* self,
     while (1) {
     };
 #else
-    if (NULL != eventData && !_VM_is_first_lock()) {
+    if (NULL != eventData && !vm_gil_is_first_lock()) {
 #if PIKA_EVENT_THREAD_ENABLE
-        _VM_lock_init();
+        vm_gil_init();
 #else
         pika_platform_printf(
             "Error: can not send arg event data without thread support\r\n");
@@ -2907,27 +2907,27 @@ PIKA_RES _do_pika_eventListener_send(PikaEventListener* self,
     if (NULL == eventData) {
         // for event signal
         if (PIKA_RES_OK !=
-            __eventListener_pushSignal(self, eventId, eventSignal)) {
+            event_listener_push_signal(self, eventId, eventSignal)) {
             return PIKA_RES_ERR_RUNTIME_ERROR;
         }
     }
     /* using multi thread */
-    if (pika_GIL_isInit()) {
+    if (vm_gil_is_init()) {
         /* python thread is running */
         /* wait python thread get first lock */
         while (1) {
-            if (_VM_is_first_lock()) {
+            if (vm_gil_is_first_lock()) {
                 break;
             }
             if (g_PikaVMState.vm_cnt == 0) {
                 break;
             }
-            if (pika_GIL_getBareLock() == 0) {
+            if (vm_gil_get_bare_lock() == 0) {
                 break;
             }
             pika_platform_thread_yield();
         }
-        pika_GIL_ENTER();
+        vm_gil_enter();
 #if PIKA_EVENT_THREAD_ENABLE
         if (!g_PikaVMState.event_thread) {
             // avoid _VMEvent_pickupEvent() in _time.c as soon as
@@ -2941,13 +2941,13 @@ PIKA_RES _do_pika_eventListener_send(PikaEventListener* self,
 
         if (NULL != eventData) {
             if (PIKA_RES_OK !=
-                __eventListener_pushEvent(self, eventId, eventData)) {
+                event_listener_push_event(self, eventId, eventData)) {
                 goto __gil_exit;
             }
         }
 
         if (pickupWhenNoVM) {
-            int vmCnt = _VMEvent_getVMCnt();
+            int vmCnt = vm_event_get_vm_cnt();
             if (0 == vmCnt) {
                 /* no vm running, pick up event imediately */
                 pika_debug("vmCnt: %d, pick up imediately", vmCnt);
@@ -2955,7 +2955,7 @@ PIKA_RES _do_pika_eventListener_send(PikaEventListener* self,
             }
         }
     __gil_exit:
-        pika_GIL_EXIT();
+        vm_gil_exit();
     }
     return (PIKA_RES)0;
 #endif
@@ -4455,7 +4455,7 @@ void pika_sleep_ms(uint32_t ms) {
     while (1) {
         pika_platform_thread_yield();
 #if PIKA_EVENT_ENABLE
-        if (!pika_GIL_isInit()) {
+        if (!vm_gil_is_init()) {
             _VMEvent_pickupEvent();
         }
 #endif
@@ -4850,7 +4850,7 @@ PIKA_RES insert_label_at_line(const char* filename,
 
 int32_t pika_debug_find_break_point_pc(char* pyFile, uint32_t pyLine) {
     ByteCodeFrame bytecode_frame;
-    byteCodeFrame_init(&bytecode_frame);
+    bc_frame_init(&bytecode_frame);
     char* file_buff = pikaMalloc(PIKA_READ_FILE_BUFF_SIZE);
     FILE* file = pika_platform_fopen(pyFile, "r");
     if (!file) {
@@ -4865,7 +4865,7 @@ __exit:
     if (NULL != file) {
         pika_platform_fclose(file);
     }
-    byteCodeFrame_deinit(&bytecode_frame);
+    bc_frame_deinit(&bytecode_frame);
     pikaFree(file_buff, PIKA_READ_FILE_BUFF_SIZE);
     return bytecode_frame.label_pc;
 }

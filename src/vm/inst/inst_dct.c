@@ -27,7 +27,7 @@ Arg *vm_inst_handler_DCT(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_re
 {
 #if PIKA_BUILTIN_STRUCT_ENABLE
     uint32_t n_arg = vm_frame_get_input_arg_num(vm);
-    PikaObj* dict = New_PikaDict();
+    PikaObj *dict = New_PikaDict();
     Stack stack = {0};
     stack_init(&stack);
     /* load to local stack to change sort */
