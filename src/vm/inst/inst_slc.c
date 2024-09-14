@@ -24,12 +24,12 @@
 #include "inst_common.h"
 
 #if PIKA_BUILTIN_STRUCT_ENABLE
-extern PikaObj* New_PikaStdData_List(Args* args);
-extern PikaObj* New_PikaStdData_Tuple(Args* args);
+extern PikaObj *New_PikaStdData_List(Args* args);
+extern PikaObj *New_PikaStdData_Tuple(Args* args);
 #endif
-extern char* string_slice(Args* outBuffs, char* str, int start, int end);
+extern char *string_slice(Args* outBuffs, char *str, int start, int end);
 
-Arg *_vm_slice(PikaVMFrame* vm, PikaObj* self, Arg *aEnd, Arg *aObj, Arg *aStart, int step)
+Arg *_vm_slice(PikaVMFrame *vm, PikaObj *self, Arg *aEnd, Arg *aObj, Arg *aStart, int step)
 {
 #if PIKA_SYNTAX_SLICE_ENABLE
     /* No interger index only support __getitem__ */
@@ -72,7 +72,7 @@ Arg *_vm_slice(PikaVMFrame* vm, PikaObj* self, Arg *aEnd, Arg *aObj, Arg *aStart
     if (ARG_TYPE_STRING == arg_getType(aObj)) {
         Args buffs = {0};
         Arg *aSliced = NULL;
-        char* sSliced = string_slice(&buffs, arg_getStr(aObj), iStart, iEnd);
+        char *sSliced = string_slice(&buffs, arg_getStr(aObj), iStart, iEnd);
         if (NULL != sSliced) {
             aSliced = arg_newStr(sSliced);
         } else {
@@ -89,12 +89,12 @@ Arg *_vm_slice(PikaVMFrame* vm, PikaObj* self, Arg *aEnd, Arg *aObj, Arg *aStart
     }
 
     if (arg_isObject(aObj)) {
-        PikaObj* oArg = arg_getPtr(aObj);
-        PikaObj* New_PikaStdData_List(Args * args);
-        PikaObj* New_PikaStdData_Tuple(Args * args);
+        PikaObj *oArg = arg_getPtr(aObj);
+        PikaObj *New_PikaStdData_List(Args * args);
+        PikaObj *New_PikaStdData_Tuple(Args * args);
         if (oArg->constructor == New_PikaStdData_List ||
             oArg->constructor == New_PikaStdData_Tuple) {
-            PikaObj* oSliced = newNormalObj((NewFun)oArg->constructor);
+            PikaObj *oSliced = newNormalObj((NewFun)oArg->constructor);
             pikaList_init(oSliced);
             for (int i = iStart; i < iEnd; i++) {
                 Arg *aIndex = arg_newInt(i);

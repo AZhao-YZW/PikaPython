@@ -45,7 +45,7 @@
 
 #if defined(__INS_GET_INS_STR)
 #define def_ins(__INS_NAME)                                                   \
-    if (_##PIKA_VM_INS_##__INS_NAME == instructUnit_getInstructIndex(self)) { \
+    if (_##PIKA_VM_INS_##__INS_NAME == inst_unit_get_inst_index(self)) { \
         return "" #__INS_NAME "";                                             \
     }
 #endif

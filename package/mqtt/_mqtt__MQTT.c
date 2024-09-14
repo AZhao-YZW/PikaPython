@@ -1,5 +1,6 @@
 #include "_mqtt__MQTT.h"
 #include "PikaObj.h"
+#include "PikaVM.h"
 #include "PikaStdData_List.h"
 #include "TinyObj.h"
 #include "mqttclient.h"

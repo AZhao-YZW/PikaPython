@@ -33,7 +33,7 @@ Arg *vm_inst_handler_RAS(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_re
         return NULL;
     }
     /* use "data" object to run */
-    PikaObj* runAs = obj_getObj(vm->locals, data);
+    PikaObj *runAs = obj_getObj(vm->locals, data);
     args_setRef(vm->locals->list, "@r", runAs);
     obj_setFlag(vm->locals, OBJ_FLAG_RUN_AS);
     return NULL;

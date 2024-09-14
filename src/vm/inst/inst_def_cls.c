@@ -23,11 +23,11 @@
  */
 #include "inst_common.h"
 
-static Arg *__VM_instruction_handler_DEF(PikaObj* self, PikaVMFrame* vm, char* data, uint8_t is_class)
+static Arg *__VM_instruction_handler_DEF(PikaObj *self, PikaVMFrame *vm, char *data, uint8_t is_class)
 {
     int this_blk_depth = vm_frame_get_blk_deepth_now(vm);
 
-    PikaObj* hostObj = vm->locals;
+    PikaObj *hostObj = vm->locals;
     uint8_t is_in_class = 0;
     /* use RunAs object */
     if (obj_getFlag(vm->locals, OBJ_FLAG_RUN_AS)) {
@@ -37,13 +37,13 @@ static Arg *__VM_instruction_handler_DEF(PikaObj* self, PikaVMFrame* vm, char* d
     int offset = 0;
     /* byteCode */
     while (1) {
-        InstructUnit* ins_unit_now =
-            PikaVMFrame_getInstructUnitWithOffset(vm, offset);
-        if (!instructUnit_getIsNewLine(ins_unit_now)) {
-            offset += instructUnit_getSize();
+        InstructUnit *ins_unit_now =
+            vm_frame_get_inst_unit_with_offset(vm, offset);
+        if (!inst_unit_get_is_new_line(ins_unit_now)) {
+            offset += inst_unit_get_size();
             continue;
         }
-        if (instructUnit_getBlockDeepth(ins_unit_now) == this_blk_depth + 1) {
+        if (inst_unit_get_blk_deepth(ins_unit_now) == this_blk_depth + 1) {
             if (is_in_class) {
                 class_defineObjectMethod(hostObj, data, (Method)ins_unit_now,
                                          self, vm->bytecode_frame);
@@ -60,7 +60,7 @@ static Arg *__VM_instruction_handler_DEF(PikaObj* self, PikaVMFrame* vm, char* d
             }
             break;
         }
-        offset += instructUnit_getSize();
+        offset += inst_unit_get_size();
     }
 
     return NULL;

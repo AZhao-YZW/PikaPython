@@ -32,6 +32,8 @@
 #include "dataQueueObj.h"
 #include "dataStack.h"
 #include "dataStrs.h"
+// delete later
+#include "inst.h"
 
 const char magic_code_pyo[] = {0x0f, 'p', 'y', 'o'};
 
@@ -77,7 +79,7 @@ static size_t arg_getBytecodeSize(Arg* self) {
 }
 
 /* const Pool output redirect */
-static void __handler_constPool_output_file(ConstPool* self, char* content) {
+static void __handler_constPool_output_file(ConstPool *self, char* content) {
     /* to ram */
     uint16_t size = strGetSize(content) + 1;
     self->arg_buff = arg_append(self->arg_buff, content, size);
@@ -86,15 +88,15 @@ static void __handler_constPool_output_file(ConstPool* self, char* content) {
 }
 
 /* instruct array output redirect */
-static void __handler_instructArray_output_none(InstructArray* self,
-                                                InstructUnit* ins_unit) {
+static void __handler_instructArray_output_none(InstructArray *self,
+                                                InstructUnit *ins_unit) {
     /* none */
 }
 
-static void __handler_instructArray_output_file(InstructArray* self,
-                                                InstructUnit* ins_unit) {
+static void __handler_instructArray_output_file(InstructArray *self,
+                                                InstructUnit *ins_unit) {
     /* to flash */
-    pika_platform_fwrite(ins_unit, 1, instructUnit_getSize(), self->output_f);
+    pika_platform_fwrite(ins_unit, 1, inst_unit_get_size(), self->output_f);
 }
 
 /*
@@ -121,7 +123,7 @@ PIKA_RES pikaCompile(char* output_file_name, char* py_lines) {
     /* main process */
 
     /* step 1, get size of const pool and instruct array */
-    byteCodeFrame_init(&bytecode_frame);
+    bc_frame_init(&bytecode_frame);
     bytecode_frame.const_pool.output_f = bytecode_f;
     bytecode_frame.instruct_array.output_f = bytecode_f;
     bytecode_frame.instruct_array.output_redirect_fun =
@@ -135,7 +137,7 @@ PIKA_RES pikaCompile(char* output_file_name, char* py_lines) {
     instruct_array_size = bytecode_frame.instruct_array.size;
     bytecode_size = const_pool_size + instruct_array_size +
                     sizeof(const_pool_size) + sizeof(instruct_array_size);
-    byteCodeFrame_deinit(&bytecode_frame);
+    bc_frame_deinit(&bytecode_frame);
 
     /* step 2, write instruct array to file */
     /* write magic code */
@@ -145,14 +147,14 @@ PIKA_RES pikaCompile(char* output_file_name, char* py_lines) {
     /* write ins array size */
     pika_platform_fwrite(&instruct_array_size, 1, sizeof(instruct_array_size),
                          bytecode_f);
-    byteCodeFrame_init(&bytecode_frame);
+    bc_frame_init(&bytecode_frame);
     bytecode_frame.const_pool.output_f = bytecode_f;
     bytecode_frame.instruct_array.output_f = bytecode_f;
     /* instruct array to file */
     bytecode_frame.instruct_array.output_redirect_fun =
         __handler_instructArray_output_file;
     pika_lines2Bytes(&bytecode_frame, py_lines);
-    byteCodeFrame_deinit(&bytecode_frame);
+    bc_frame_deinit(&bytecode_frame);
 
     /* step 3, write const pool to file */
     pika_platform_fwrite(&const_pool_size, 1, sizeof(const_pool_size),
@@ -160,7 +162,7 @@ PIKA_RES pikaCompile(char* output_file_name, char* py_lines) {
     void_ = 0;
     /* add \0 at the start */
     pika_platform_fwrite(&void_, 1, 1, bytecode_f);
-    byteCodeFrame_init(&bytecode_frame);
+    bc_frame_init(&bytecode_frame);
     bytecode_frame.const_pool.output_f = bytecode_f;
     bytecode_frame.instruct_array.output_f = bytecode_f;
     /* const pool to file */
@@ -173,7 +175,7 @@ PIKA_RES pikaCompile(char* output_file_name, char* py_lines) {
 
     /* deinit */
 __exit:
-    byteCodeFrame_deinit(&bytecode_frame);
+    bc_frame_deinit(&bytecode_frame);
     if (NULL != bytecode_f) {
         pika_platform_fclose(bytecode_f);
     }
@@ -1079,9 +1081,9 @@ int pikaMaker_getDependencies(PikaMaker* self, char* module_name) {
     int res = 0;
     ByteCodeFrame bf = {0};
     Args buffs = {0};
-    byteCodeFrame_init(&bf);
-    ConstPool* const_pool = NULL;
-    InstructArray* ins_array = NULL;
+    bc_frame_init(&bf);
+    ConstPool *const_pool = NULL;
+    InstructArray *ins_array = NULL;
     char* module_path =
         strsPathJoin(&buffs, obj_getStr(self, "pwd"), "pikascript-api/");
     module_path = strsPathJoin(&buffs, module_path, module_name);
@@ -1093,21 +1095,21 @@ int pikaMaker_getDependencies(PikaMaker* self, char* module_name) {
         res = 1;
         goto __exit;
     }
-    byteCodeFrame_loadByteCode(&bf, arg_getBytes(file_arg));
+    bc_frame_load_bytecode_default(&bf, arg_getBytes(file_arg));
     const_pool = &bf.const_pool;
     ins_array = &bf.instruct_array;
 
     offset_befor = ins_array->content_offset_now;
     ins_array->content_offset_now = 0;
     while (1) {
-        InstructUnit* ins_unit = instructArray_getNow(ins_array);
+        InstructUnit *ins_unit = inst_array_get_now(ins_array);
         if (NULL == ins_unit) {
             goto __exit;
         }
-        if (instructUnit_getInstructIndex(ins_unit) == PIKA_INS(IMP) ||
-            instructUnit_getInstructIndex(ins_unit) == PIKA_INS(INH)) {
+        if (inst_unit_get_inst_index(ins_unit) == PIKA_INS(IMP) ||
+            inst_unit_get_inst_index(ins_unit) == PIKA_INS(INH)) {
             char* imp_module_name =
-                constPool_getByOffset(const_pool, ins_unit->const_pool_index);
+                const_pool_get_by_offset(const_pool, ins_unit->const_pool_index);
             char* imp_module_name_fs =
                 strsReplace(&buffs, imp_module_name, ".", "/");
             char* imp_module_path = strsPathJoin(
@@ -1147,7 +1149,7 @@ int pikaMaker_getDependencies(PikaMaker* self, char* module_name) {
                 }
             }
         }
-        instructArray_getNext(ins_array);
+        inst_array_get_next(ins_array);
     }
 
 __exit:
@@ -1158,7 +1160,7 @@ __exit:
         arg_deinit(file_arg);
     }
     strsDeinit(&buffs);
-    byteCodeFrame_deinit(&bf);
+    bc_frame_deinit(&bf);
     return res;
 }
 

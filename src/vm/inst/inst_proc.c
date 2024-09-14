@@ -33,7 +33,7 @@ Arg *vm_inst_handler_BYT(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_re
     if (strIsContain(data, '\\')) {
         Args buffs = {0};
         size_t i_out = 0;
-        char* transfered_str = strsTransfer(&buffs, data, &i_out);
+        char *transfered_str = strsTransfer(&buffs, data, &i_out);
         Arg *return_arg = New_arg(NULL);
         return_arg = arg_setBytes(return_arg, "", (uint8_t*)transfered_str, i_out);
         strsDeinit(&buffs);
@@ -86,7 +86,7 @@ Arg *vm_inst_handler_STR(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_re
     if (strIsContain(data, '\\')) {
         Args buffs = {0};
         size_t i_out = 0;
-        char* transfered_str = strsTransfer(&buffs, data, &i_out);
+        char *transfered_str = strsTransfer(&buffs, data, &i_out);
         Arg *return_arg = arg_ret_reg;
         return_arg = arg_setStr(return_arg, "", transfered_str);
         strsDeinit(&buffs);

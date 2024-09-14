@@ -1,3 +1,4 @@
+#include "PikaVM.h"
 #include "PikaPlatform_socket.h"
 #include "_socket_socket.h"
 

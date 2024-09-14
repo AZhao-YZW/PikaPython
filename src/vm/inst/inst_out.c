@@ -23,7 +23,7 @@
  */
 #include "inst_common.h"
 
-static pika_bool _proxy_setattr(PikaObj* self, char* name, Arg *arg) {
+static pika_bool _proxy_setattr(PikaObj *self, char *name, Arg *arg) {
 #if PIKA_NANO_ENABLE
     return pika_false;
 #endif
@@ -53,10 +53,10 @@ static pika_bool _proxy_setattr(PikaObj* self, char* name, Arg *arg) {
 
 Arg *vm_inst_handler_OUT(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg)
 {
-    char* sArgPath = data;
+    char *sArgPath = data;
     pika_assert(sArgPath != NULL);
-    char* sArgName = strPointToLastToken(sArgPath, '.');
-    PikaObj* oHost = NULL;
+    char *sArgName = strPointToLastToken(sArgPath, '.');
+    PikaObj *oHost = NULL;
     pika_bool bIsTemp = pika_false;
     arg_newReg(aOutReg, PIKA_ARG_BUFF_SIZE);
     PIKA_RES res = PIKA_RES_OK;
@@ -76,23 +76,23 @@ Arg *vm_inst_handler_OUT(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_re
 
     if (locals_check_lreg(sArgPath)) {
         if (argType_isObject(eOutArgType)) {
-            PikaObj* obj = arg_getPtr(aOut);
+            PikaObj *obj = arg_getPtr(aOut);
             locals_set_lreg(vm->locals, sArgPath, obj);
             arg_deinit(aOut);
         }
         goto __exit;
     }
 
-    PikaObj* oContext = vm->locals;
+    PikaObj *oContext = vm->locals;
     /* match global_list */
     if (obj_getFlag(vm->locals, OBJ_FLAG_GLOBALS)) {
-        char* sGlobalList = args_getStr(vm->locals->list, "@g");
+        char *sGlobalList = args_getStr(vm->locals->list, "@g");
         /* use a arg as buff */
         Arg *aGlobalList = arg_newStr(sGlobalList);
-        char* sGlobalListBuff = arg_getStr(aGlobalList);
+        char *sGlobalListBuff = arg_getStr(aGlobalList);
         /* for each arg arg in global_list */
         for (int i = 0; i < strCountSign(sGlobalList, ',') + 1; i++) {
-            char* sGlobalArg = strPopFirstToken(&sGlobalListBuff, ',');
+            char *sGlobalArg = strPopFirstToken(&sGlobalListBuff, ',');
             /* matched global arg, context set to global */
             if (strEqu(sGlobalArg, sArgPath)) {
                 oContext = vm->globals;

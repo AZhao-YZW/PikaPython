@@ -26,43 +26,105 @@
 
 #include "dataArgs.h"
 #include "PikaVM.h"
-#include "frame.h"
+#include "const_pool.h"
 
-Arg *vm_inst_handler_DCT(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_DEF(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_CLS(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_DEL(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_GLB(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_IMP(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_INH(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_JEZ(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_JNZ(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_LST(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_NEW(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_NLS(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_NUM(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_OPT(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_OUT(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_NON(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_BYT(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_EXP(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_GER(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_JMP(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_NTR(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_RET(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_STR(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_TRY(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_SER(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_NEL(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_EST(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_BRK(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_CTN(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_RAS(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_REF(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_RIS(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_ASS(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_RUN(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_SLC(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
-Arg *vm_inst_handler_TPL(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg);
+typedef Arg* (*VM_instruct_handler)(PikaObj *self, PikaVMFrame *vm, char *data, Arg* arg_ret_reg);
+typedef struct VMInstruction {
+    VM_instruct_handler handler;
+    const char *op_str;
+    uint16_t op_idx;
+    uint16_t op_str_len : 4;
+    uint16_t : 12;
+} VMInstruction;
+
+typedef struct VMInstructionSet {
+    const struct VMInstruction* instructions;
+    uint16_t count;
+    uint16_t signature;
+    uint16_t op_idx_start;
+    uint16_t op_idx_end;
+} VMInstructionSet;
+
+static inline int inst_unit_get_blk_deepth(InstructUnit *self)
+{
+    return self->depth & 0x0F;
+}
+
+static inline void inst_unit_set_blk_deepth(InstructUnit *self, int val)
+{
+    self->depth |= (0x0F & val);
+}
+
+static inline int inst_unit_get_invoke_deepth(InstructUnit *self)
+{
+    return self->depth >> 4;
+}
+
+static inline void inst_unit_set_invoke_deepth(InstructUnit *self, int val)
+{
+    self->depth |= ((0x0F & val) << 4);
+}
+
+static inline enum InstructIndex inst_unit_get_inst_index(InstructUnit *self)
+{
+    return (enum InstructIndex)(self->isNewLine_instruct & 0x7F);
+}
+
+static inline void inst_unit_set_inst_index(InstructUnit *self, int val)
+{
+    self->isNewLine_instruct |= (0x7F & val);
+}
+
+static inline int inst_unit_get_const_pool_index(InstructUnit *self)
+{
+    return self->const_pool_index;
+}
+
+static inline void inst_unit_set_const_pool_index(InstructUnit *self, int val)
+{
+    self->const_pool_index = val;
+}
+
+static inline int inst_unit_get_is_new_line(InstructUnit *self)
+{
+    return self->isNewLine_instruct >> 7;
+}
+
+static inline void inst_unit_set_is_new_line(InstructUnit *self, int val)
+{
+    self->isNewLine_instruct |= ((0x01 & val) << 7);
+}
+
+static inline size_t inst_unit_get_size(void)
+{
+    return (size_t)sizeof(InstructUnit);
+}
+
+static inline InstructUnit *inst_array_get_start(InstructArray *self)
+{
+    return (InstructUnit *)self->content_start;
+}
+
+static inline uint32_t inst_array_get_size(InstructArray *self)
+{
+    return self->size;
+}
+
+static inline InstructUnit *inst_array_get_by_offset(InstructArray *self, int offset)
+{
+    return (InstructUnit *)((uintptr_t)inst_array_get_start(self) + (uintptr_t)offset);
+}
+
+const VMInstruction* inst_unit_get_inst(enum InstructIndex ins_idx);
+void inst_unit_print_with_const_pool(InstructUnit *self, ConstPool *const_pool);
+void inst_array_print_with_const_pool(InstructArray *self, ConstPool *const_pool);
+void inst_array_print_as_array(InstructArray *self);
+void inst_array_init(InstructArray *ins_array);
+void inst_array_deinit(InstructArray *ins_array);
+void inst_array_append(InstructArray *ins_array, InstructUnit *ins_unit);
+void inst_unit_init(InstructUnit *ins_unit);
+void inst_unit_print(InstructUnit *self);
+void inst_array_print(InstructArray *self);
+enum InstructIndex inst_get_index_from_asm(char *line);
 
 #endif

@@ -24,7 +24,23 @@
 #include "inst_common.h"
 #include "TinyObj.h"
 
-int operatorInfo_init(OperatorInfo* info, PikaObj* self, PikaVMFrame* vm, char* data,
+typedef struct OperatorInfo OperatorInfo;
+struct OperatorInfo {
+    char *opt;
+    ArgType t1;
+    ArgType t2;
+    Arg* a1;
+    Arg* a2;
+    pika_float f1;
+    pika_float f2;
+    int64_t i1;
+    int64_t i2;
+    Arg* res;
+    uint32_t num;
+    PikaVMFrame *vm;
+};
+
+int operatorInfo_init(OperatorInfo* info, PikaObj *self, PikaVMFrame *vm, char *data,
                       Arg *arg_ret_reg)
 {
     if (info->a1 == NULL && info->a2 == NULL) {
@@ -60,8 +76,8 @@ int operatorInfo_init(OperatorInfo* info, PikaObj* self, PikaVMFrame* vm, char* 
     return 0;
 }
 
-static Arg *_OPT_Method_ex(PikaObj* host, Arg *arg, OperatorInfo* op, char* method_name,
-                           PIKA_RES err_no, char* errinfo)
+static Arg *_OPT_Method_ex(PikaObj *host, Arg *arg, OperatorInfo* op, char *method_name,
+                           PIKA_RES err_no, char *errinfo)
 {
     Arg *method = obj_getMethodArgWithFullPath(host, method_name);
     if (NULL == method) {
@@ -73,9 +89,9 @@ static Arg *_OPT_Method_ex(PikaObj* host, Arg *arg, OperatorInfo* op, char* meth
     return res;
 }
 
-static Arg *_OPT_Method(OperatorInfo* op, char* method_name, PIKA_RES err_no, char* errinfo)
+static Arg *_OPT_Method(OperatorInfo* op, char *method_name, PIKA_RES err_no, char *errinfo)
 {
-    PikaObj* obj1 = arg_getPtr(op->a1);
+    PikaObj *obj1 = arg_getPtr(op->a1);
     return _OPT_Method_ex(obj1, op->a2, op, method_name, err_no, errinfo);
 }
 
@@ -104,12 +120,12 @@ static void _OPT_ADD(OperatorInfo* op)
         return;
     }
     if ((op->t1 == ARG_TYPE_STRING) && (op->t2 == ARG_TYPE_STRING)) {
-        char* num1_s = NULL;
-        char* num2_s = NULL;
+        char *num1_s = NULL;
+        char *num2_s = NULL;
         Args str_opt_buffs = {0};
         num1_s = arg_getStr(op->a1);
         num2_s = arg_getStr(op->a2);
-        char* opt_str_out = strsAppend(&str_opt_buffs, num1_s, num2_s);
+        char *opt_str_out = strsAppend(&str_opt_buffs, num1_s, num2_s);
         op->res = arg_setStr(op->res, "", opt_str_out);
         strsDeinit(&str_opt_buffs);
         return;
@@ -306,7 +322,7 @@ static void _OPT_MUL(OperatorInfo* op)
     }
     if ((op->t1 == ARG_TYPE_STRING && op->t2 == ARG_TYPE_INT) ||
         (op->t1 == ARG_TYPE_INT && op->t2 == ARG_TYPE_STRING)) {
-        char* str = NULL;
+        char *str = NULL;
         int64_t num = 0;
         if (op->t1 == ARG_TYPE_STRING) {
             str = arg_getStr(op->a1);
@@ -316,7 +332,7 @@ static void _OPT_MUL(OperatorInfo* op)
             num = op->i1;
         }
         Args str_opt_buffs = {0};
-        char* opt_str_out = strsRepeat(&str_opt_buffs, str, num);
+        char *opt_str_out = strsRepeat(&str_opt_buffs, str, num);
         op->res = arg_setStr(op->res, "", opt_str_out);
         strsDeinit(&str_opt_buffs);
         return;
@@ -344,7 +360,7 @@ static void _OPT_MUL(OperatorInfo* op)
     }
     if (argType_isObject(op->t1) || argType_isObject(op->t2)) {
         Arg *__mul__ = NULL;
-        PikaObj* obj = NULL;
+        PikaObj *obj = NULL;
         Arg *arg = NULL;
         if (argType_isObject(op->t1)) {
             __mul__ =
@@ -505,7 +521,7 @@ Arg *vm_inst_handler_OPT(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_re
         }
 #if !PIKA_NANO_ENABLE
         if (argType_isObject(op.t2)) {
-            PikaObj* obj2 = arg_getPtr(op.a2);
+            PikaObj *obj2 = arg_getPtr(op.a2);
             Arg *__contains__ =
                 obj_getMethodArgWithFullPath(obj2, "__contains__");
             if (NULL != __contains__) {
@@ -515,7 +531,7 @@ Arg *vm_inst_handler_OPT(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_re
                                         "TypeError: unsupported operand in");
                 goto __exit;
             }
-            PikaObj* local = New_TinyObj(NULL);
+            PikaObj *local = New_TinyObj(NULL);
             obj_setArg(local, "@list", op.a2);
             obj_setArg(local, "@val", op.a1);
             /* clang-format off */

@@ -24,18 +24,18 @@
 #include "inst_common.h"
 #include "PikaParser.h"
 
-extern VMParameters* _pikaVM_runByteCodeFrameWithState(PikaObj* self, VMParameters* locals,
-    VMParameters* globals, ByteCodeFrame* bytecode_frame, uint16_t pc, PikaVMThread* vm_thread);
-extern Arg* obj_runMethodArgWithState_noalloc(PikaObj* self, PikaObj* locals, Arg* method_arg,
+extern VMParameters* _pikaVM_runByteCodeFrameWithState(PikaObj *self, VMParameters* locals,
+    VMParameters* globals, ByteCodeFrame *bytecode_frame, uint16_t pc, PikaVMThread* vm_thread);
+extern Arg* obj_runMethodArgWithState_noalloc(PikaObj *self, PikaObj *locals, Arg* method_arg,
     PikaVMThread* vm_thread, Arg* ret_arg_reg);
-extern Arg* obj_runMethodArgWithState(PikaObj* self, PikaObj* method_args_obj, Arg* method_arg,
+extern Arg* obj_runMethodArgWithState(PikaObj *self, PikaObj *method_args_obj, Arg* method_arg,
     PikaVMThread* vm_thread);
-extern char* _find_super_class_name(ByteCodeFrame* bcframe, int32_t pc_start);
-extern PikaObj* New_builtins_object(Args* args);
+extern char *_find_super_class_name(ByteCodeFrame *bcframe, int32_t pc_start);
+extern PikaObj *New_builtins_object(Args* args);
 
-static Arg *_VM_instruction_eval(PikaObj* self,
-                                 PikaVMFrame* vm,
-                                 char* sRunPath,
+static Arg *_VM_instruction_eval(PikaObj *self,
+                                 PikaVMFrame *vm,
+                                 char *sRunPath,
                                  pika_bool* bIsEval) {
     Arg *aReturn = NULL;
     Args buffs = {0};
@@ -50,10 +50,10 @@ static Arg *_VM_instruction_eval(PikaObj* self,
     *bIsEval = pika_true;
     ByteCodeFrame bcFrame = {0};
     /* generate byte code */
-    byteCodeFrame_init(&bcFrame);
+    bc_frame_init(&bcFrame);
     Arg *aCode = stack_popArg_alloc(&(vm->stack));
-    char* sCode = arg_getStr(aCode);
-    char* sCmd = strsAppend(&buffs, "@res = ", sCode);
+    char *sCode = arg_getStr(aCode);
+    char *sCmd = strsAppend(&buffs, "@res = ", sCode);
     if (PIKA_RES_OK != pika_lines2Bytes(&bcFrame, sCmd)) {
         vm_frame_set_sys_out(vm, PIKA_ERR_STRING_SYNTAX_ERROR);
         aReturn = NULL;
@@ -71,20 +71,20 @@ static Arg *_VM_instruction_eval(PikaObj* self,
     }
     goto __exit;
 __exit:
-    byteCodeFrame_deinit(&bcFrame);
+    bc_frame_deinit(&bcFrame);
     arg_deinit(aCode);
     strsDeinit(&buffs);
     return aReturn;
 }
 
 #if !PIKA_NANO_ENABLE
-static char* _find_self_name(PikaVMFrame* vm) {
+static char *_find_self_name(PikaVMFrame *vm) {
     /* find super class */
     int offset = 0;
-    char* self_name = NULL;
+    char *self_name = NULL;
     while (1) {
-        offset -= instructUnit_getSize();
-        if (vm->pc + offset >= (int)PikaVMFrame_getInstructArraySize(vm)) {
+        offset -= inst_unit_get_size();
+        if (vm->pc + offset >= (int)vm_frame_get_inst_array_size(vm)) {
             return 0;
         }
         if ((PIKA_INS(CLS) == vm_frame_get_inst_with_offset(vm, offset))) {
@@ -93,13 +93,13 @@ static char* _find_self_name(PikaVMFrame* vm) {
     }
 
     while (1) {
-        offset += instructUnit_getSize();
-        if (vm->pc + offset >= (int)PikaVMFrame_getInstructArraySize(vm)) {
+        offset += inst_unit_get_size();
+        if (vm->pc + offset >= (int)vm_frame_get_inst_array_size(vm)) {
             return 0;
         }
         if ((PIKA_INS(OUT) ==
-             instructUnit_getInstructIndex(
-                 PikaVMFrame_getInstructUnitWithOffset(vm, offset)))) {
+             inst_unit_get_inst_index(
+                 vm_frame_get_inst_unit_with_offset(vm, offset)))) {
             self_name = vm_frame_get_const_with_offset(vm, offset);
             return self_name;
         }
@@ -112,18 +112,18 @@ Arg *vm_inst_handler_RUN(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_re
     Arg *aReturn = NULL;
     VMParameters* oSublocals = NULL;
     VMParameters* oSublocalsInit = NULL;
-    char* sRunPath = data;
-    char* sArgName = NULL;
-    char* sProxyName = NULL;
-    PikaObj* oMethodHost = NULL;
-    PikaObj* oThis = NULL;
+    char *sRunPath = data;
+    char *sArgName = NULL;
+    char *sProxyName = NULL;
+    PikaObj *oMethodHost = NULL;
+    PikaObj *oThis = NULL;
     Arg *aMethod = NULL;
     Arg *aStack = NULL;
     pika_bool bIsTemp = pika_false;
     pika_bool bSkipInit = pika_false;
     pika_bool bIsEval = pika_false;
     int iNumUsed = 0;
-    PikaObj* oBuiltin = NULL;
+    PikaObj *oBuiltin = NULL;
     arg_newReg(arg_reg1, 32);
     pika_assert(NULL != vm->vm_thread);
 
@@ -132,9 +132,9 @@ Arg *vm_inst_handler_RUN(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_re
     }
 
     /* inhert */
-    if (vm->pc - 2 * (int)instructUnit_getSize() >= 0) {
+    if (vm->pc - 2 * (int)inst_unit_get_size() >= 0) {
         if (PIKA_INS(CLS) == vm_frame_get_inst_with_offset(
-                                 vm, -2 * (int)instructUnit_getSize())) {
+                                 vm, -2 * (int)inst_unit_get_size())) {
             bSkipInit = pika_true;
         }
     }
@@ -219,7 +219,7 @@ Arg *vm_inst_handler_RUN(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_re
 #endif
     /* use RunAs object */
     if (obj_getFlag(vm->locals, OBJ_FLAG_RUN_AS)) {
-        PikaObj* oContext = args_getPtr(vm->locals->list, "@r");
+        PikaObj *oContext = args_getPtr(vm->locals->list, "@r");
         oMethodHost = obj_getHostObjWithIsTemp(oContext, sRunPath, &bIsTemp);
     }
 
@@ -348,7 +348,7 @@ Arg *vm_inst_handler_RUN(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_re
         pika_assert(NULL != aReturn);
         arg_setType(aReturn, ARG_TYPE_OBJECT);
         /* init object */
-        PikaObj* oNew = arg_getPtr(aReturn);
+        PikaObj *oNew = arg_getPtr(aReturn);
         obj_setName(oNew, sRunPath);
         Arg *aMethod2 = obj_getMethodArgWithFullPath_noalloc(oNew, "__init__", &arg_reg1);
         oSublocalsInit = locals_new(NULL);

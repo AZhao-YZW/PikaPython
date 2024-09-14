@@ -24,13 +24,13 @@
 #include "inst_common.h"
 
 #if PIKA_BUILTIN_STRUCT_ENABLE
-extern PikaObj* New_PikaStdData_List(Args* args);
+extern PikaObj *New_PikaStdData_List(Args* args);
 #endif
 
 Arg *vm_inst_handler_LST(PikaObj *self, PikaVMFrame *vm, char *data, Arg *arg_ret_reg)
 {
 #if PIKA_BUILTIN_STRUCT_ENABLE
-    PikaObj* list = newNormalObj(New_PikaStdData_List);
+    PikaObj *list = newNormalObj(New_PikaStdData_List);
     pikaList_init(list);
     vm->oreg[vm_frame_get_invoke_deepth_now(vm)] = list;
 #endif
