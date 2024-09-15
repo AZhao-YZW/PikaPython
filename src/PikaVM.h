@@ -46,6 +46,8 @@ extern "C" {
 #define byteCodeFrame_appendFromAsm bc_frame_append_from_asm
 #define byteCodeFrame_deinit bc_frame_deinit
 
+void pika_debug_set_trace(PikaObj *self);
+
 typedef enum VM_SIGNAL_CTRL {
     VM_SIGNAL_CTRL_NONE = 0,
     VM_SIGNAL_CTRL_EXIT,
