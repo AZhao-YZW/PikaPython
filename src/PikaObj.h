@@ -437,14 +437,7 @@ struct FilterItem {
 
 #endif
 
-typedef struct {
-    int max_size;
-    int current;
-    int count;
-    int last_offset;
-    char** history;
-    int cached_current;
-} ShellHistory;
+typedef struct ShellHistory ShellHistory;
 
 struct ShellConfig {
 #if PIKA_SHELL_FILTER_ENABLE
@@ -471,16 +464,6 @@ struct ShellConfig {
     PikaObj* locals;
     PikaObj* globals;
 };
-
-#if PIKA_SHELL_HISTORY_ENABLE
-ShellHistory* shHistory_create(int max_size);
-void shHistory_destroy(ShellHistory* self);
-void shHistory_add(ShellHistory* self, char* command);
-void shHistory_setMaxSize(ShellHistory* self, int max_size);
-char* shHistory_get(ShellHistory* self, int index);
-char* shHistory_getPrev(ShellHistory* self);
-char* shHistory_getNext(ShellHistory* self);
-#endif
 
 void _do_pikaScriptShell(PikaObj* self, ShellConfig* cfg);
 
@@ -822,21 +805,9 @@ void pika_debug_bytes(uint8_t* buff, size_t len);
         pika_assert(obj_checkAlive((__obj))); \
     } while (0)
 
-void obj_appendGcChain(PikaObj* self);
-void obj_removeGcChain(PikaObj* self);
 void obj_enableGC(PikaObj* self);
 pika_bool obj_checkAlive(PikaObj* self);
 void obj_setName(PikaObj* self, char* name);
-
-void pikaGC_mark(void);
-void pikaGC_markDump(void);
-void pikaGC_lock(void);
-void pikaGC_unlock(void);
-pika_bool pikaGC_islock(void);
-uint32_t pikaGC_count(void);
-uint32_t pikaGC_countMarked(void);
-uint32_t pikaGC_markSweep(void);
-uint32_t pikaGC_printFreeList(void);
 
 int vm_gil_exit(void);
 int vm_gil_enter(void);
