@@ -23,19 +23,6 @@
  */
 #include "object.h"
 
-char* fast_itoa(char* buf, uint32_t val) {
-    char* p = &buf[10];
-    *p = '\0';
-    while (val >= 10) {
-        p--;
-        *p = '0' + (val % 10);
-        val /= 10;
-    }
-    p--;
-    *p = '0' + val;
-    return p;
-}
-
 static PIKA_RES obj_setValue(PikaObj* self, char* argPath, void* value, SetType type, size_t size) {
     PikaObj* obj = obj_getHostObj(self, argPath);
     if (NULL == obj) {
